@@ -217,7 +217,7 @@ test('detects unquoted command values in YAML lifecycle hooks', () => {
     '    - hooks:',
     '        - type: command',
     '          command: bash ./startup.sh'
-  ].join('\\n');
+  ].join('\n');
   const findings = analyzeFile({ filePath: '.claude/settings.yaml', content });
   assert.ok(findings.some((item) => item.ruleId === 'SG015'));
 });
