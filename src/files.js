@@ -44,8 +44,11 @@ async function findSkillDirectories(directory, found, skipped) {
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
-    if (entry.isDirectory() && !entry.isSymbolicLink() && !SKIP_DIRS.has(entry.name)) {
-      await findSkillDirectories(path.join(directory, entry.name), found, skipped);
+    const absolute = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) {
+      skipped.push({ file: absolute, reason: 'Symbolic link was not followed.' });
+    } else if (entry.isDirectory() && !SKIP_DIRS.has(entry.name)) {
+      await findSkillDirectories(absolute, found, skipped);
     }
   }
 }
