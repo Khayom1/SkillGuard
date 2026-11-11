@@ -187,3 +187,15 @@ test('explicit unsupported file inputs are reported instead of scanned as text',
   assert.equal(result.files.length, 0);
   assert.ok(result.skipped.some((item) => item.file === pdf && /unsupported file type/i.test(item.reason)));
 });
+
+test('includes credential dotfiles and common extensionless build files', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-dotfiles-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const env = path.join(root, '.env');
+  const dockerfile = path.join(root, 'Dockerfile');
+  await fs.writeFile(env, 'APP_MODE=production');
+  await fs.writeFile(dockerfile, 'FROM node:20');
+  const result = await collectFiles([env, dockerfile]);
+  assert.deepEqual(result.files.map((item) => item.filePath), [env, dockerfile]);
+  assert.equal(result.skipped.length, 0);
+});
