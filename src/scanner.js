@@ -157,8 +157,9 @@ function checkObfuscatedPayloads(text, file, findings) {
     if (value) add(value, match.index + match[1].length);
   }
 
-  const percentEncoded = /(?:%[0-9a-f]{2}){4,}/gi;
+  const percentEncoded = /(?:[A-Za-z0-9._~-]|%[0-9a-f]{2}){16,}/gi;
   while ((match = percentEncoded.exec(text)) !== null && candidates.length < 256) {
+    if ((match[0].match(/%[0-9a-f]{2}/gi) ?? []).length < 4) continue;
     try { add(decodeURIComponent(match[0]), match.index); } catch { /* malformed encoding is ignored */ }
   }
 
