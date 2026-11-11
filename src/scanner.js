@@ -251,6 +251,8 @@ export function createReport({ findings, filesScanned, skipped = [], root = '.' 
       score,
       grade: score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 65 ? 'C' : score >= 45 ? 'D' : 'F',
       filesScanned,
+      complete: skipped.length === 0,
+      skipped: skipped.length,
       findings: sorted.length,
       critical: sorted.filter((x) => x.severity === 'critical').length,
       high: sorted.filter((x) => x.severity === 'high').length,
