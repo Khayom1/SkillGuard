@@ -140,7 +140,7 @@ export async function run(argv = process.argv.slice(2)) {
       return 2;
     }
     if (skipped.length && !options.allowSkipped) {
-      process.stderr.write(`SkillGuard: scan incomplete; ${skipped.length} item(s) were skipped. Resolve them or explicitly pass --allow-skipped.\\n`);
+      process.stderr.write(`SkillGuard: scan incomplete; ${skipped.length} item(s) were skipped. Resolve them or explicitly pass --allow-skipped.\n`);
       return 2;
     }
     const threshold = SEVERITY_ORDER[options.failOn];
