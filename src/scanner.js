@@ -7,14 +7,18 @@ const RULE_BY_ID = new Map(RULES.map((rule) => [rule.id, rule]));
 const SECRET_PATTERNS = [
   { regex: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g, label: 'private key block' },
   { regex: /\bAKIA[0-9A-Z]{16}\b/g, label: 'AWS access key ID' },
+  { regex: /\bASIA[0-9A-Z]{16}\b/g, label: 'AWS temporary access key ID' },
   { regex: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/g, label: 'GitHub token' },
   { regex: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g, label: 'GitHub fine-grained token' },
   { regex: /\bsk-(?:proj-)?[A-Za-z0-9_-]{24,}\b/g, label: 'API-key-like token' },
+  { regex: /\bsk-ant-api\d{2}-[A-Za-z0-9_-]{20,}\b/g, label: 'Anthropic API key' },
   { regex: /\b(?:xox[baprs]-)[A-Za-z0-9-]{10,}\b/g, label: 'Slack token' },
   { regex: /\bAIza[0-9A-Za-z_-]{35}\b/g, label: 'Google API key' },
   { regex: /\bglpat-[A-Za-z0-9_-]{20,}\b/g, label: 'GitLab personal access token' },
   { regex: /\bnpm_[A-Za-z0-9]{36}\b/g, label: 'npm access token' },
   { regex: /\bhf_[A-Za-z0-9]{30,}\b/g, label: 'Hugging Face token' },
+  { regex: /\bpypi-[A-Za-z0-9_-]{50,}\b/g, label: 'PyPI token' },
+  { regex: /\bdckr_pat_[A-Za-z0-9_-]{20,}\b/g, label: 'Docker Hub personal access token' },
   { regex: /\bsk_live_[A-Za-z0-9]{24,}\b/g, label: 'Stripe live secret key' },
   { regex: /\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, label: 'Telegram bot token' },
   { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' }
@@ -104,6 +108,75 @@ const LINE_RULES = [
   ['SG012', /\b(?:sudo\s+-i|sudo\s+su\b|--privileged\b|runAsNonRoot:\s*false)\b/i, 'Broad elevated privileges are requested or enabled.']
 ];
 
+const DECODED_BEHAVIOR_PATTERNS = [
+  /\b(?:ignore|disregard|forget)\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|system|developer)\s+instructions?\b/i,
+  /\b(?:curl|wget)\s+https?:\/\/[^\n|;]*\|\s*(?:sudo\s+)?(?:sh|bash|zsh)\b/i,
+  /\b(?:invoke-webrequest|iwr)\b[\s\S]{0,160}\b(?:iex|invoke-expression)\b/i,
+  /\b(?:process\.env|os\.environ|GetEnvironmentVariable)\b[\s\S]{0,160}(?:https?:\/\/|fetch\s*\(|requests?\.(?:post|put)|\bcurl\s)/i,
+  /\b(?:rm\s+-[a-z]*r[a-z]*f|chmod\s+-R\s+777|mkfs(?:\.[a-z0-9]+)?|format\s+[a-z]:)/i,
+  /\b(?:base64|FromBase64String)\b[\s\S]{0,100}\b(?:eval|exec|iex|invoke-expression)\b/i
+];
+
+function looksLikeHighRiskDecodedText(value) {
+  return DECODED_BEHAVIOR_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function decodeBase64Candidate(value, encoding = 'utf8') {
+  if (value.length > 88000) return null;
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+  if (!/^[A-Za-z0-9+/]+$/.test(normalized) || normalized.length % 4 === 1) return null;
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  const bytes = Buffer.from(padded, 'base64');
+  if (bytes.length > 65536 || bytes.toString('base64').replace(/=+$/, '') !== normalized) return null;
+  const decoded = bytes.toString(encoding);
+  if (!decoded) return null;
+  const visible = [...decoded].filter((character) => character === '\n' || character === '\r' || character === '\t' || character.codePointAt(0) >= 0x20).length;
+  if (visible / [...decoded].length < 0.85) return null;
+  return decoded;
+}
+
+function checkObfuscatedPayloads(text, file, findings) {
+  const candidates = [];
+  const add = (value, index) => {
+    if (candidates.length >= 256 || !value) return;
+    candidates.push({ value, index });
+  };
+
+  const encodedCommand = /-(?:enc|encodedcommand)\s+([A-Za-z0-9+/]{20,}={0,2})/gi;
+  let match;
+  while ((match = encodedCommand.exec(text)) !== null) {
+    const value = decodeBase64Candidate(match[1], 'utf16le') ?? decodeBase64Candidate(match[1]);
+    if (value) add(value, match.index + match[0].indexOf(match[1]));
+  }
+
+  const base64 = /(^|[^A-Za-z0-9+/_=-])([A-Za-z0-9+/_-]{24,}={0,2})(?![A-Za-z0-9+/_=-])/g;
+  while ((match = base64.exec(text)) !== null && candidates.length < 256) {
+    const value = decodeBase64Candidate(match[2]) ?? decodeBase64Candidate(match[2], 'utf16le');
+    if (value) add(value, match.index + match[1].length);
+  }
+
+  const percentEncoded = /(?:%[0-9a-f]{2}){4,}/gi;
+  while ((match = percentEncoded.exec(text)) !== null && candidates.length < 256) {
+    try { add(decodeURIComponent(match[0]), match.index); } catch { /* malformed encoding is ignored */ }
+  }
+
+  const escaped = /(?:\\x[0-9a-f]{2}){4,}|(?:\\u[0-9a-f]{4}){4,}/gi;
+  while ((match = escaped.exec(text)) !== null && candidates.length < 256) {
+    const decoded = match[0].replace(/\\x([0-9a-f]{2})|\\u([0-9a-f]{4})/gi, (_whole, hex, unicode) => String.fromCodePoint(Number.parseInt(hex ?? unicode, 16)));
+    add(decoded, match.index);
+  }
+
+  const lines = text.split(/\r?\n/);
+  const seenLines = new Set();
+  for (const candidate of candidates) {
+    if (!looksLikeHighRiskDecodedText(candidate.value)) continue;
+    const line = text.slice(0, candidate.index).split('\n').length;
+    if (seenLines.has(line)) continue;
+    seenLines.add(line);
+    addFinding(findings, file, line, 'SG013', 'Encoded content decodes to a recognizable high-risk instruction or command. The decoded content was inspected as text only and was never executed.', lines[line - 1] ?? '');
+  }
+}
+
 function checkLines(text, file, findings) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
@@ -138,6 +211,7 @@ export function analyzeFile({ filePath, content }) {
   checkSecrets(text, file, findings);
   checkLines(text, file, findings);
   checkPrompt(text, file, findings);
+  checkObfuscatedPayloads(text, file, findings);
 
   if (path.basename(file).toLowerCase() === 'skill.md') {
     const parsed = parseFrontmatter(text);
