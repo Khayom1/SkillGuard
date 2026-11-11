@@ -1,18 +1,29 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import { constants } from 'node:fs';
+
+function isWithinDirectory(root, target) {
+  const relative = path.relative(root, target);
+  return relative === '' || (relative !== '..' && !relative.startsWith(\`..\${path.sep}\`) && !path.isAbsolute(relative));
+}
 
 /**
  * Read a regular file through an already-open file descriptor.
  *
- * The lstat/open/fstat identity checks prevent a path from being swapped for
- * a symlink between discovery and reading on platforms that expose inode
- * metadata. O_NOFOLLOW is used where supported. This is defense in depth,
- * not a substitute for scanning inside an isolated environment.
+ * O_NOFOLLOW, inode checks, canonical-root checks, and before/after metadata
+ * checks reduce common symlink-swap and file-mutation risks. This remains
+ * defense in depth; scan untrusted bundles in an isolated environment.
  */
 export async function readRegularFile(filePath, options = {}) {
   const maxBytes = options.maxBytes ?? Number.MAX_SAFE_INTEGER;
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
     throw new Error('maxBytes must be a non-negative safe integer.');
+  }
+
+  const allowedRoot = options.allowedRoot ? await fs.realpath(options.allowedRoot) : null;
+  const canonicalBefore = await fs.realpath(filePath);
+  if (allowedRoot && !isWithinDirectory(allowedRoot, canonicalBefore)) {
+    throw new Error('Refusing to read a file outside the scan root.');
   }
 
   const before = await fs.lstat(filePath);
@@ -59,6 +70,7 @@ export async function readRegularFile(filePath, options = {}) {
 
     const after = await handle.stat();
     const pathAfter = await fs.lstat(filePath);
+    const canonicalAfter = await fs.realpath(filePath);
     if (
       !after.isFile() ||
       after.dev !== opened.dev ||
@@ -69,7 +81,9 @@ export async function readRegularFile(filePath, options = {}) {
       pathAfter.isSymbolicLink() ||
       !pathAfter.isFile() ||
       pathAfter.dev !== opened.dev ||
-      pathAfter.ino !== opened.ino
+      pathAfter.ino !== opened.ino ||
+      (allowedRoot && !isWithinDirectory(allowedRoot, canonicalAfter)) ||
+      canonicalBefore !== canonicalAfter
     ) {
       throw new Error('File changed while being read; retry the operation.');
     }
