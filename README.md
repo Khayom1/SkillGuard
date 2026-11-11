@@ -147,8 +147,7 @@ Exit codes: `0` clean or below threshold, `1` finding at/above threshold, `2` in
 ```bash
 git clone https://github.com/Khayom1/SkillGuard.git
 cd SkillGuard
-npm test
-npm run check
+npm run verify
 node src/cli.js examples/safe-skill --format json --fail-on none
 
 # Inspect an intentionally unsafe, inert fixture
