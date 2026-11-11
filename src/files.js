@@ -6,6 +6,26 @@ export const MAX_FILE_BYTES = 1024 * 1024;
 export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
 const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.jsonc', '.json5', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env', '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.scala', '.lua', '.r', '.ex', '.exs', '.swift', '.dart', '.c', '.h', '.cc', '.cpp', '.cs', '.sql', '.html', '.xml', '.svg', '.css', '.scss', '.less', '.ipynb']);
 
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { readRegularFile } from './safe-fs.js';
+
+export const MAX_FILE_BYTES = 1024 * 1024;
+export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
+const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.jsonc', '.json5', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env', '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.scala', '.lua', '.r', '.ex', '.exs', '.swift', '.dart', '.c', '.h', '.cc', '.cpp', '.cs', '.sql', '.html', '.xml', '.svg', '.css', '.scss', '.less', '.ipynb']);
+const TEXT_FILENAMES = new Set([
+  '.env', '.npmrc', '.pypirc', '.netrc', '.bashrc', '.zshrc', '.profile',
+  '.gitignore', '.gitmodules', '.dockerignore', 'dockerfile', 'containerfile',
+  'makefile', 'procfile', 'justfile', 'gemfile', 'rakefile', 'taskfile', 'vagrantfile', 'brewfile'
+]);
+
+function isSupportedTextFile(name) {
+  const normalized = name.toLowerCase();
+  return normalized === 'skill.md' ||
+    TEXT_FILENAMES.has(normalized) ||
+    normalized.startsWith('.env.') ||
+    TEXT_EXTENSIONS.has(path.extname(normalized));
+}
 async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
 }
@@ -57,7 +77,7 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text', limits =
       else if (mode !== 'all' && entry.name !== '.git') {
         skipped.push({ file: absolute, reason: 'Directory excluded by scan policy; inspect it separately if it contains executable skill content.' });
       }
-    } else if (entry.isFile() && (mode === 'all' || entry.name.toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))) {
+    } else if (entry.isFile() && (mode === 'all' || isSupportedTextFile(entry.name))) {
       found.push(absolute);
     } else if (entry.isFile() && mode !== 'all') {
       skipped.push({ file: absolute, reason: 'Unsupported file type; text analysis did not inspect this file.' });
@@ -124,7 +144,7 @@ export async function collectFiles(inputPaths, options = {}) {
         skipped.push({ file: input, reason: `File limit (${maxFiles}) reached.` });
         continue;
       }
-      if (path.basename(absolute).toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(absolute).toLowerCase())) {
+      if (isSupportedTextFile(path.basename(absolute))) {
         found.push(absolute);
       } else {
         skipped.push({ file: absolute, reason: 'Unsupported file type; text analysis did not inspect this file.' });
