@@ -12,7 +12,7 @@ export function formatText(report, options = {}) {
   const lines = [];
   lines.push(`${paint('SkillGuard', 'bold', color)} ${paint('Security audit', 'gray', color)}`);
   lines.push(`${paint(`${summary.score}/100`, summary.score >= 80 ? 'green' : summary.score >= 60 ? 'yellow' : 'red', color)}  Grade ${summary.grade}  ·  ${summary.filesScanned} files  ·  ${summary.findings} findings`);
-  lines.push(`Critical ${summary.critical}  High ${summary.high}  Medium ${summary.medium}  Low ${summary.low}`);
+  lines.push(`Critical ${summary.critical}  High ${summary.high}  Medium ${summary.medium}  Low ${summary.low}  ·  ${summary.skipped} skipped  ·  ${summary.complete ? 'complete' : 'incomplete'}`);
   lines.push('');
   if (!report.findings.length) lines.push(paint('No findings matched SkillGuard rules.', 'green', color));
   for (const item of report.findings) {
@@ -56,7 +56,7 @@ export function toSarif(report) {
         } }],
         partialFingerprints: { primaryLocationLineHash: `${finding.ruleId}:${finding.file}:${finding.line}` }
       })),
-      properties: { score: report.summary.score, filesScanned: report.summary.filesScanned }
+      properties: { score: report.summary.score, filesScanned: report.summary.filesScanned, scanComplete: report.summary.complete, skipped: report.summary.skipped }
     }]
   };
 }
