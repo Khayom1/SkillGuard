@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Redact every detected secret value from all finding snippets, including findings raised by other rules.
+- Add regression coverage for repeated secrets and cross-rule snippet redaction.
+- Declare the package author and add pre-publish test and syntax checks.
+
+
 ## 0.1.0 — 2026-11-11
 
 - Initial public MVP.
