@@ -53,3 +53,11 @@ test('CLI creates, verifies, then detects integrity drift', async (t) => {
   assert.equal(drift.status, 1);
   assert.match(drift.stdout, /DRIFT DETECTED/);
 });
+
+test('CLI accepts directory traversal limits and rejects invalid values', () => {
+  const valid = run(['--help']);
+  assert.equal(valid.status, 0);
+  const invalid = run(['--max-directories', '0']);
+  assert.equal(invalid.status, 2);
+  assert.match(invalid.stderr, /--max-directories/i);
+});
