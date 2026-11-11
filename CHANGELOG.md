@@ -6,6 +6,8 @@
 - Flag pre-authorized shell tools in Agent Skills frontmatter (SG014) and recognized automatic lifecycle command hooks (SG015), with positive and negative regression tests.
 - Expand secret-pattern coverage for AWS temporary keys, Anthropic API keys, PyPI tokens, and Docker Hub personal tokens.
 - Read discovered files through verified file descriptors, reject symlinks and non-regular files, enforce byte limits before allocation, and re-check file identity after reading.
+- Enforce canonical scan-root boundaries during directory traversal and file reads; surface unsupported files and excluded directories as incomplete coverage.
+- Include dependency/build contents in integrity manifests within configured limits while excluding Git metadata.
 - Make incomplete scans fail closed with exit code 2 unless the caller explicitly uses --allow-skipped; expose completeness in JSON and SARIF reports.
 - Add a synthetic offline benchmark with precision, recall, F1, and specificity metrics.
 - Add the threat model, architecture guide, benchmark methodology, and regression coverage for the new behavior.
