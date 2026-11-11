@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add bounded offline inspection for Base64, UTF-16LE PowerShell, percent-encoded, and escaped high-risk payloads (SG013).
+- Flag pre-authorized shell tools in Agent Skills frontmatter (SG014) and recognized automatic lifecycle command hooks (SG015), with positive and negative regression tests.
 - Expand secret-pattern coverage for AWS temporary keys, Anthropic API keys, PyPI tokens, and Docker Hub personal tokens.
 - Read discovered files through verified file descriptors, reject symlinks and non-regular files, enforce byte limits before allocation, and re-check file identity after reading.
 - Make incomplete scans fail closed with exit code 2 unless the caller explicitly uses --allow-skipped; expose completeness in JSON and SARIF reports.
