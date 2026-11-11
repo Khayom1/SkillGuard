@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { collectBundlePaths } from './files.js';
+import { readRegularFile } from './safe-fs.js';
 import { VERSION } from './version.js';
 
 const LOCK_VERSION = 1;
@@ -18,14 +18,16 @@ export async function createIntegrityLock(rootPath, options = {}) {
   let totalBytes = 0;
   for (const filePath of files) {
     if (excluded.has(path.resolve(filePath))) continue;
-    const stat = await fs.lstat(filePath);
-    if (stat.isSymbolicLink()) throw new Error('A symbolic link appeared during lock creation; retry after removing it.');
-    if (stat.size > maxFileBytes) {
-      skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
-      continue;
+    const remainingBytes = maxTotalBytes - totalBytes;
+    const read = await readRegularFile(filePath, { maxBytes: Math.min(maxFileBytes, remainingBytes) });
+    if (read.oversized) {
+      if (read.stat.size > maxFileBytes) {
+        skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
+        continue;
+      }
+      throw new Error(`Integrity lock total size limit (${maxTotalBytes} bytes) would be exceeded.`);
     }
-    if (totalBytes + stat.size > maxTotalBytes) throw new Error(`Integrity lock total size limit (${maxTotalBytes} bytes) would be exceeded.`);
-    const bytes = await fs.readFile(filePath);
+    const { bytes, stat } = read;
     totalBytes += bytes.byteLength;
     entries.push({
       path: path.relative(root, filePath).split(path.sep).join('/'),
