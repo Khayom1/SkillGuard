@@ -177,3 +177,13 @@ test('reports dependency and build directories excluded by the text scan policy'
   const result = await collectFiles([root]);
   assert.ok(result.skipped.some((item) => item.file.endsWith('node_modules') && /excluded by scan policy/i.test(item.reason)));
 });
+
+test('explicit unsupported file inputs are reported instead of scanned as text', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-explicit-unsupported-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const pdf = path.join(root, 'manual.pdf');
+  await fs.writeFile(pdf, Buffer.from('%PDF-1.4 sample'));
+  const result = await collectFiles([pdf]);
+  assert.equal(result.files.length, 0);
+  assert.ok(result.skipped.some((item) => item.file === pdf && /unsupported file type/i.test(item.reason)));
+});
