@@ -10,7 +10,8 @@ export const RULES = [
   { id: 'SG009', name: 'Sensitive file access', short: 'The skill references credential stores or private key locations.', severity: 'high', description: 'The content accesses common secret stores or credential files such as .ssh, .aws, .env, or key files.' },
   { id: 'SG010', name: 'Obfuscated code execution', short: 'Encoded content is decoded and executed dynamically.', severity: 'high', description: 'The content combines decoding/obfuscation with a dynamic execution primitive.' },
   { id: 'SG011', name: 'Potential secret exfiltration', short: 'Environment variables or credentials may be sent to a remote endpoint.', severity: 'critical', description: 'The content combines secret/environment access with a network upload or request.' },
-  { id: 'SG012', name: 'Overly broad privilege', short: 'The skill requests or configures broad system privileges.', severity: 'medium', description: 'The content requests elevated privileges or disables common filesystem permission boundaries.' }
+  { id: 'SG012', name: 'Overly broad privilege', short: 'The skill requests or configures broad system privileges.', severity: 'medium', description: 'The content requests elevated privileges or disables common filesystem permission boundaries.' },
+  { id: 'SG013', name: 'Obfuscated high-risk payload', short: 'Encoded text contains a recognizable high-risk command or instruction.', severity: 'high', description: 'A bounded, offline decoder found a recognizable prompt override, download-and-execute chain, privilege abuse, or secret-exfiltration pattern inside Base64, PowerShell encoded commands, percent encoding, or common escaped-string forms. Decoded content is inspected as text only and is never executed.' }
 ];
 
 export const SEVERITY_ORDER = Object.freeze({ critical: 4, high: 3, medium: 2, low: 1, none: 0 });
