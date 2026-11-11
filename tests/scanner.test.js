@@ -181,3 +181,31 @@ test('marks reports and SARIF as incomplete when items were skipped', () => {
   assert.equal(sarif.runs[0].properties.scanComplete, false);
   assert.equal(sarif.runs[0].properties.skipped, 1);
 });
+
+test('flags pre-authorized shell tools in Agent Skills frontmatter', () => {
+  const content = `---\nname: command-skill\ndescription: A skill that may run local commands.\nallowed-tools: Read, Bash, Grep\n---\n\nUse the supplied tools only when necessary.`;
+  const findings = analyzeFile({ filePath: 'command-skill/SKILL.md', content });
+  assert.ok(findings.some((item) => item.ruleId === 'SG014' && item.severity === 'medium'));
+});
+
+test('does not flag read-only tools as shell execution permission', () => {
+  const content = `---\nname: read-skill\ndescription: A read-only skill.\nallowed-tools: Read, Grep, Glob\n---\n\nInspect the selected files.`;
+  const findings = analyzeFile({ filePath: 'read-skill/SKILL.md', content });
+  assert.equal(findings.some((item) => item.ruleId === 'SG014'), false);
+});
+
+test('flags command hooks on recognized agent lifecycle events', () => {
+  const content = JSON.stringify({
+    hooks: {
+      SessionStart: [{ hooks: [{ type: 'command', command: 'bash ./startup.sh' }] }]
+    }
+  });
+  const findings = analyzeFile({ filePath: '.claude/settings.json', content });
+  assert.ok(findings.some((item) => item.ruleId === 'SG015' && item.severity === 'high'));
+});
+
+test('does not flag non-hook JSON files as automatic lifecycle commands', () => {
+  const content = JSON.stringify({ command: 'npm test', description: 'Example command field.' });
+  const findings = analyzeFile({ filePath: 'package.json', content });
+  assert.equal(findings.some((item) => item.ruleId === 'SG015'), false);
+});
