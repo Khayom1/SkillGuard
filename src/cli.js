@@ -24,6 +24,7 @@ SCAN OPTIONS
   --max-file-bytes <number>   Skip larger text files (default: 1048576)
   --max-directories <number>  Maximum directories to visit (default: 10000)
   --max-depth <number>        Maximum directory depth (default: 40)
+  --allow-skipped             Exit successfully even when some files were skipped
 
 LOCK / VERIFY OPTIONS
   --output <file>             Lock output path (lock); report path (verify)
@@ -63,6 +64,7 @@ function parseArgs(argv) {
     else if (arg === '--max-file-bytes') result.maxFileBytes = Number(next());
     else if (arg === '--max-directories') result.maxDirectories = Number(next());
     else if (arg === '--max-depth') result.maxDepth = Number(next());
+    else if (arg === '--allow-skipped') result.allowSkipped = true;
     else if (arg === '--no-color') result.color = false;
     else if (arg === '--help' || arg === '-h') result.help = true;
     else if (arg === '--version' || arg === '-v') result.version = true;
