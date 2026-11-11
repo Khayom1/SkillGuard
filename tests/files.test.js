@@ -36,3 +36,18 @@ test('reports skill directories omitted after the file limit is reached', async 
   assert.equal(result.files[0].filePath, path.join(first, 'SKILL.md'));
   assert.ok(result.skipped.some((item) => item.file === second && item.reason.includes('File limit (1) reached')));
 });
+
+test('reports symbolic links discovered while locating nested skills', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-symlink-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const skills = path.join(root, 'skills');
+  const outside = path.join(root, 'outside');
+  await fs.mkdir(skills);
+  await fs.mkdir(outside);
+  await fs.writeFile(path.join(outside, 'SKILL.md'), '---\\nname: outside\\ndescription: Outside skill.\\n---\\n');
+  await fs.symlink(outside, path.join(skills, 'linked-skill'), 'dir');
+
+  const result = await collectFiles([skills]);
+  assert.equal(result.files.length, 0);
+  assert.ok(result.skipped.some((item) => item.file === path.join(skills, 'linked-skill') && /symbolic link/i.test(item.reason)));
+});
