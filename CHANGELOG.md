@@ -4,6 +4,8 @@
 
 - Redact every detected secret value from all finding snippets, including findings raised by other rules.
 - Add regression coverage for repeated secrets and cross-rule snippet redaction.
+- Enforce the configured file limit across multiple explicit file inputs.
+- Add an npm Trusted Publishing workflow and release checklist.
 - Declare the package author and add pre-publish test and syntax checks.
 
 
