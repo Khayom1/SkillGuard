@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add bounded offline inspection for Base64, UTF-16LE PowerShell, percent-encoded, and escaped high-risk payloads (SG013).
+- Expand secret-pattern coverage for AWS temporary keys, Anthropic API keys, PyPI tokens, and Docker Hub personal tokens.
+- Read discovered files through verified file descriptors, reject symlinks and non-regular files, enforce byte limits before allocation, and re-check file identity after reading.
+- Make incomplete scans fail closed with exit code 2 unless the caller explicitly uses --allow-skipped; expose completeness in JSON and SARIF reports.
+- Add a synthetic offline benchmark with precision, recall, F1, and specificity metrics.
+- Add the threat model, architecture guide, benchmark methodology, and regression coverage for the new behavior.
+
 - Redact every detected secret value from all finding snippets, including findings raised by other rules.
 - Detect additional credential formats for Google, GitLab, npm, Hugging Face, Stripe, Telegram, and AWS secret-key assignments.
 - Load the CLI and report version from a single package metadata source.
