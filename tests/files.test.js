@@ -66,3 +66,60 @@ test('limits directory traversal during skill discovery', async (t) => {
 test('rejects invalid traversal limits', async () => {
   await assert.rejects(() => collectFiles(['.'], { maxDirectories: 0 }), /limits must be positive/i);
 });
+
+test('handles empty files and Unicode filenames without crashing', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-unicode-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const empty = path.join(root, 'empty.md');
+  const unicode = path.join(root, 'тест-技能-🛡️.md');
+  await fs.writeFile(empty, '');
+  await fs.writeFile(unicode, '# safe content');
+  const result = await collectFiles([root]);
+  assert.equal(result.files.length, 2);
+  assert.equal(result.skipped.length, 0);
+});
+
+test('skips binary files containing null bytes', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-binary-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const file = path.join(root, 'payload.txt');
+  await fs.writeFile(file, Buffer.from([0x41, 0x00, 0x42]));
+  const result = await collectFiles([file]);
+  assert.equal(result.files.length, 0);
+  assert.ok(result.skipped.some((item) => /Binary or null-byte/.test(item.reason)));
+});
+
+test('skips oversized files and rejects invalid maxFileBytes values', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-size-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const file = path.join(root, 'large.md');
+  await fs.writeFile(file, '1234567890');
+  const result = await collectFiles([file], { maxFileBytes: 5 });
+  assert.equal(result.files.length, 0);
+  assert.ok(result.skipped.some((item) => /exceeds 5 bytes/.test(item.reason)));
+  await assert.rejects(() => collectFiles([file], { maxFileBytes: 0 }), /limits must be positive/i);
+  await assert.rejects(() => collectFiles([file], { maxFileBytes: Number.MAX_SAFE_INTEGER + 1 }), /limits must be positive/i);
+});
+
+test('enforces maximum traversal depth', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-depth-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const deep = path.join(root, 'one', 'two', 'three');
+  await fs.mkdir(deep, { recursive: true });
+  await fs.writeFile(path.join(deep, 'note.md'), 'deep');
+  const result = await collectFiles([root], { maxDepth: 1 });
+  assert.equal(result.files.length, 0);
+  assert.ok(result.skipped.some((item) => /Directory depth limit/.test(item.reason)));
+});
+
+test('handles a large directory while respecting the file cap', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-many-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  for (let index = 0; index < 300; index += 1) {
+    await fs.writeFile(path.join(root, `file-${String(index).padStart(4, '0')}.md`), `# file ${index}`);
+  }
+  const result = await collectFiles([root], { maxFiles: 75 });
+  assert.equal(result.files.length, 75);
+  assert.ok(result.skipped.some((item) => /File limit \(75\) reached/.test(item.reason)));
+});
+
