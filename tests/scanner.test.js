@@ -168,3 +168,16 @@ test('detects and redacts additional AWS and Anthropic credential formats', () =
     assert.equal(finding.snippet.includes(anthropic), false);
   }
 });
+
+test('marks reports and SARIF as incomplete when items were skipped', () => {
+  const report = createReport({
+    findings: [],
+    filesScanned: 2,
+    skipped: [{ file: 'large.md', reason: 'File exceeds limit.' }]
+  });
+  assert.equal(report.summary.complete, false);
+  assert.equal(report.summary.skipped, 1);
+  const sarif = toSarif(report);
+  assert.equal(sarif.runs[0].properties.scanComplete, false);
+  assert.equal(sarif.runs[0].properties.skipped, 1);
+});
