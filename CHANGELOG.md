@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Redact every detected secret value from all finding snippets, including findings raised by other rules.
+- Detect additional credential formats for Google, GitLab, npm, Hugging Face, Stripe, Telegram, and AWS secret-key assignments.
+- Load the CLI and report version from a single package metadata source.
 - Add regression coverage for repeated secrets and cross-rule snippet redaction.
 - Enforce the configured file limit across multiple explicit file inputs.
 - Add an npm Trusted Publishing workflow and release checklist.
