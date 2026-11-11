@@ -28,8 +28,8 @@ Assume a skill may be intentionally malicious, compromised in a supply-chain upd
 - The default scan path makes no network requests and has no runtime dependencies.
 - File count, file size, directory count, and traversal depth are bounded.
 - Symbolic links are not followed during directory discovery.
-- Regular files are opened through file descriptors. Where supported, \`O_NOFOLLOW\` is used; device/inode and file metadata are checked before and after reading.
-- Oversized, unreadable, linked, or otherwise skipped items are reported. The CLI exits with status \`2\` for an incomplete scan unless the user explicitly passes \`--allow-skipped\`.
+- Regular files are opened through file descriptors. Where supported, `O_NOFOLLOW` is used; device/inode and file metadata are checked before and after reading.
+- Oversized, unreadable, linked, or otherwise skipped items are reported. The CLI exits with status `2` for an incomplete scan unless the user explicitly passes `--allow-skipped`.
 - Integrity locks hash file bytes with SHA-256 and record permission modes. Verification reports changed, added, and missing files.
 
 ## Trust boundaries and limitations
@@ -43,7 +43,7 @@ SkillGuard is a static analyzer, not a sandbox, antivirus engine, runtime monito
 - A file extension allowlist means unsupported file types are not text-analyzed; they are surfaced as skipped items and make the default CLI exit incomplete. Image/audio/archive semantics are not decoded by the text scanner.
 - The text scanner intentionally excludes dependency, VCS, virtual-environment, and build/cache directories (for example `.git`, `node_modules`, `.venv`, `dist`, and `.cache`). Except for `.git`, excluded directories are listed as skipped. Scan an excluded directory explicitly when it is part of the artifact under review.
 - Integrity locking includes regular files under dependency/build directories, subject to file and total-size limits, but excludes `.git` metadata. It records bytes and modes; it does not determine whether any asset or dependency is safe.
-- A skipped item makes the report incomplete. Do not use \`--allow-skipped\` for release gates unless you have independently reviewed every omitted item.
+- A skipped item makes the report incomplete. Do not use `--allow-skipped` for release gates unless you have independently reviewed every omitted item.
 
 ## Recommended operating procedure
 
