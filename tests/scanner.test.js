@@ -116,6 +116,6 @@ test('sanitizes terminal control characters in finding snippets', () => {
   });
   const finding = findings.find((item) => item.ruleId === 'SG003');
   assert.ok(finding);
-  assert.equal(finding.snippet.includes('\\u001B'), false);
-  assert.match(finding.snippet, /\\[U\\+001B\\]/);
+  assert.equal(finding.snippet.includes('\u001B'), false);
+  assert.match(finding.snippet, /\[U\+001B\]/);
 });
