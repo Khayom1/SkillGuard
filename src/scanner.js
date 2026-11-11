@@ -20,6 +20,13 @@ const SECRET_PATTERNS = [
   { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' }
 ];
 
+function sanitizeSnippet(value) {
+  return String(value).replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060\\u2066-\\u2069\\uFEFF]/gu, (character) => {
+    const code = character.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+    return `[U+${code}]`;
+  });
+}
+
 function addFinding(findings, file, line, ruleId, message, snippet = '', extra = {}) {
   const rule = RULE_BY_ID.get(ruleId);
   if (!rule) return;
@@ -30,7 +37,7 @@ function addFinding(findings, file, line, ruleId, message, snippet = '', extra =
     message,
     file,
     line,
-    snippet: redactSecretValues(String(snippet)).trim().slice(0, 180),
+    snippet: sanitizeSnippet(redactSecretValues(String(snippet))).trim().slice(0, 180),
     ...extra
   });
 }
