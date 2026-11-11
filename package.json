@@ -45,6 +45,8 @@
   "homepage": "https://github.com/Khayom1/SkillGuard#readme",
   "files": [
     "src/",
+    "scripts/benchmark.mjs",
+    "benchmarks/cases.json",
     "README.md",
     "LICENSE",
     "docs/",
