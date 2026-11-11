@@ -8,7 +8,7 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG002 | Medium | Missing or invalid required Agent Skills frontmatter fields. |
 | SG003 | High | Recognizable attempts to override prior, system, or developer instructions. |
 | SG004 | High | Requests to reveal private prompts, tokens, credentials, or environment secrets. |
-| SG005 | Critical | Common GitHub, AWS, Google, GitLab, npm, Hugging Face, Stripe, Telegram, Slack, and private-key credential patterns. |
+| SG005 | Critical | Common GitHub, AWS (including temporary access key IDs), Google, Anthropic, GitLab, npm, PyPI, Docker Hub, Hugging Face, Stripe, Telegram, Slack, and private-key credential patterns. |
 | SG006 | Critical | Remote download content piped directly into a shell or interpreter. |
 | SG007 | Critical | Recognizable destructive disk or recursive-delete commands. |
 | SG008 | High | Startup, service, scheduled-task, or autorun persistence changes. |
@@ -17,6 +17,8 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG011 | Critical | Patterns combining environment/secret access with network transfer. |
 | SG012 | Medium | Broad privilege or unsafe filesystem permission settings. |
 | SG013 | High | Base64, UTF-16LE PowerShell, percent-encoded, or escaped content decodes to a recognizable high-risk instruction or command. |
+| SG014 | Medium | Agent Skills frontmatter pre-authorizes shell, terminal, or command execution tools. Review whether the permission is required and narrowly scoped. |
+| SG015 | High | A recognized agent lifecycle hook is paired with a command/script setting that may run automatically. Review its trigger and side effects. |
 
 ## Scoring
 
