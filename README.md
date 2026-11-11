@@ -6,7 +6,6 @@
 
 Inspect `SKILL.md`, bundled scripts, and supporting files for prompt injection, exposed secrets, hidden Unicode, dangerous execution chains, persistence, and risky permissions.
 
-[![CI](https://github.com/Khayom1/SkillGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/Khayom1/SkillGuard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-zero-success)](package.json)
