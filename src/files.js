@@ -116,7 +116,8 @@ export async function collectFiles(inputPaths, options = {}) {
     }
   }
 
-  return { files, skipped, roots };
+  const uniqueSkipped = [...new Map(skipped.map((item) => [`${item.file}:${item.reason}`, item])).values()];
+  return { files, skipped: uniqueSkipped, roots };
 }
 
 export async function collectBundlePaths(root, options = {}) {
