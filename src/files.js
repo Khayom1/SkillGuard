@@ -122,7 +122,7 @@ export async function collectFiles(inputPaths, options = {}) {
         continue;
       }
       const content = result.bytes.toString('utf8');
-      if (content.includes('\\u0000')) {
+      if (content.includes('\u0000')) {
         skipped.push({ file: filePath, reason: 'Binary or null-byte content was skipped.' });
         continue;
       }
