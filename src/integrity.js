@@ -54,7 +54,7 @@ export async function verifyIntegrityLock(rootPath, lock, options = {}) {
   for (const entry of lock.files) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) throw new Error('Invalid SkillGuard lock file: each file entry must be an object.');
     const file = entry.path;
-    if (typeof file !== 'string' || !file || file.startsWith('/') || file.includes('\\\\') || file.split('/').some((part) => !part || part === '.' || part === '..')) {
+    if (typeof file !== 'string' || !file || file.startsWith('/') || file.includes('\\') || file.split('/').some((part) => !part || part === '.' || part === '..')) {
       throw new Error('Invalid SkillGuard lock file: file paths must be normalized relative paths.');
     }
     if (seenPaths.has(file)) throw new Error(`Invalid SkillGuard lock file: duplicate path "${file}".`);
