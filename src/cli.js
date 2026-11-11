@@ -8,6 +8,7 @@ import { collectFiles } from './files.js';
 import { formatText, toSarif } from './reporters.js';
 import { SEVERITY_ORDER } from './rules.js';
 import { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
+import { readRegularFile } from './safe-fs.js';
 
 const HELP = `SkillGuard ${VERSION} — security auditing and integrity checks for AI agent skills
 
