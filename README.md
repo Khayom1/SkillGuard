@@ -22,7 +22,7 @@ Inspect `SKILL.md`, bundled scripts, and supporting files for prompt injection, 
 
 An agent skill is more than a Markdown file. A skill can include shell scripts, helper code, references, and instructions that influence an agent with access to tools and data. A quick read of `SKILL.md` may miss a dangerous command in a bundled script or an invisible character hidden in a sentence.
 
-SkillGuard scans the skill bundle as text. It never runs the scripts, installs dependencies, or calls external services.
+SkillGuard scans supported text and code files in the skill bundle. It never runs the scripts, installs dependencies, or calls external services. Unsupported file types and policy-excluded directories are reported; a scan with skipped items exits with code 2 unless you explicitly pass `--allow-skipped`. The `.git` metadata directory is ignored. The text scan excludes dependency and build/cache directories such as `node_modules`, `dist`, `build`, `.venv`, and `.cache`; scan those paths separately when they are part of the artifact you need to review.
 
 ## Quick start
 
@@ -122,7 +122,7 @@ To upload SARIF alerts to GitHub Code Scanning, also grant `security-events: wri
 
 ## Integrity lock
 
-A scan tells you what the current contents look like. An integrity lock lets you verify that the exact bundle you reviewed has not changed. `lock` creates `.skillguard.lock.json` with SHA-256 hashes and permission-mode snapshots for every regular file in the skill folder, including binary assets. `verify` reports changed, added, and missing files. It does not follow symlinks; lock creation stops if any file-system item cannot be safely included.
+A scan tells you what the current contents look like. An integrity lock lets you verify that the exact bundle you reviewed has not changed. `lock` creates `.skillguard.lock.json` with SHA-256 hashes and permission-mode snapshots for regular files, including binary assets and dependency/build directories, within configured limits. The `.git` metadata directory is excluded. `verify` reports changed, added, and missing files. It does not follow symlinks; lock creation stops if any file-system item cannot be safely included.
 
 ```bash
 skillguard lock ./my-skill
