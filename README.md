@@ -153,7 +153,6 @@ Exit codes: `0` complete scan below the selected threshold, `1` finding at/above
 git clone https://github.com/Khayom1/SkillGuard.git
 cd SkillGuard
 npm run verify
-npm run benchmark
 node src/cli.js examples/safe-skill --format json --fail-on none
 
 # Inspect an intentionally unsafe, inert fixture
