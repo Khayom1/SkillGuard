@@ -72,3 +72,32 @@ test('enforces a total byte budget while creating integrity locks', async (t) =>
   const root = await fixture(t);
   await assert.rejects(() => createIntegrityLock(root, { maxTotalBytes: 8 }), /total size limit/i);
 });
+
+test('rejects invalid maxFileBytes limits before reading files', async (t) => {
+  const root = await fixture(t);
+  await assert.rejects(() => createIntegrityLock(root, { maxFileBytes: 0 }), /maxFileBytes must be a positive safe integer/i);
+  await assert.rejects(() => createIntegrityLock(root, { maxFileBytes: Number.MAX_SAFE_INTEGER + 1 }), /maxFileBytes must be a positive safe integer/i);
+});
+
+test('rejects malformed lock metadata and excessive lock entries', async (t) => {
+  const root = await fixture(t);
+  const lock = await createIntegrityLock(root);
+  const badSize = structuredClone(lock);
+  badSize.files[0].size = -1;
+  await assert.rejects(() => verifyIntegrityLock(root, badSize), /invalid metadata/i);
+  const badHash = structuredClone(lock);
+  badHash.files[0].sha256 = 'not-a-hash';
+  await assert.rejects(() => verifyIntegrityLock(root, badHash), /invalid metadata/i);
+  await assert.rejects(() => verifyIntegrityLock(root, lock, { maxFiles: 2 }), /file count exceeds limit/i);
+});
+
+test('handles empty files and unusual filenames in integrity locks', async (t) => {
+  const root = await fixture(t);
+  const unusual = path.join(root, 'файл-技能-🛡️.dat');
+  await fs.writeFile(unusual, '');
+  const lock = await createIntegrityLock(root);
+  const result = await verifyIntegrityLock(root, lock);
+  assert.equal(result.valid, true);
+  assert.ok(lock.files.some((entry) => entry.path.includes('файл-技能-🛡️.dat') && entry.size === 0));
+});
+
