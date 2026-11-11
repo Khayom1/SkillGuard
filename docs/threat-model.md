@@ -7,13 +7,14 @@ An AI agent may have access to project files, developer credentials, shell comma
 ## In scope
 
 SkillGuard looks for static indicators of:
-- Instruction override and secrecy directives in agent-facing text.
-- Credentials embedded in files.
-- Hidden Unicode controls.
-- Download-and-execute and encoded-execution patterns.
-- Destructive commands, persistence, sensitive-path access, and broad permissions.
-- Invalid required `SKILL.md` metadata.
-- File changes after a trusted review, through the SHA-256 integrity lock.
+
+- instruction override and secrecy directives in agent-facing text;
+- credentials embedded in files;
+- hidden Unicode controls;
+- download-and-execute and encoded-execution patterns;
+- destructive commands, persistence, sensitive-path access, and broad permissions;
+- invalid required `SKILL.md` metadata;
+- file changes after a trusted review, through the SHA-256 integrity lock.
 
 ## Out of scope
 
