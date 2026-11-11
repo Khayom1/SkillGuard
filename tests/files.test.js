@@ -51,3 +51,18 @@ test('reports symbolic links discovered while locating nested skills', async (t)
   assert.equal(result.files.length, 0);
   assert.ok(result.skipped.some((item) => item.file === path.join(skills, 'linked-skill') && /symbolic link/i.test(item.reason)));
 });
+
+test('limits directory traversal during skill discovery', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-dir-limit-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  for (const name of ['a', 'b', 'c']) {
+    await fs.mkdir(path.join(root, name));
+    await fs.writeFile(path.join(root, name, 'note.txt'), name);
+  }
+  const result = await collectFiles([root], { maxDirectories: 2 });
+  assert.ok(result.skipped.some((item) => /Directory limit \(2\) reached/.test(item.reason)));
+});
+
+test('rejects invalid traversal limits', async () => {
+  await assert.rejects(() => collectFiles(['.'], { maxDirectories: 0 }), /limits must be positive/i);
+});
