@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { parseFrontmatter } from './frontmatter.js';
 import { RULES, SCORE_PENALTY } from './rules.js';
+import { VERSION } from './version.js';
 
 const RULE_BY_ID = new Map(RULES.map((rule) => [rule.id, rule]));
 const SECRET_PATTERNS = [
@@ -153,7 +154,7 @@ export function createReport({ findings, filesScanned, skipped = [], root = '.' 
   const score = Math.max(0, 100 - penalty);
   return {
     tool: 'SkillGuard',
-    version: '0.1.0',
+    version: VERSION,
     root,
     summary: {
       score,

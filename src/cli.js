@@ -2,13 +2,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VERSION } from './version.js';
 import { analyzeFile, createReport } from './scanner.js';
 import { collectFiles } from './files.js';
 import { formatText, toSarif } from './reporters.js';
 import { SEVERITY_ORDER } from './rules.js';
 import { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
 
-const VERSION = '0.1.0';
 const HELP = `SkillGuard ${VERSION} — security auditing and integrity checks for AI agent skills
 
 USAGE

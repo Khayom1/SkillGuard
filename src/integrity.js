@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { collectBundlePaths } from './files.js';
+import { VERSION } from './version.js';
 
 const LOCK_VERSION = 1;
 
@@ -30,7 +31,7 @@ export async function createIntegrityLock(rootPath, options = {}) {
   entries.sort((a, b) => a.path.localeCompare(b.path));
   return {
     schemaVersion: LOCK_VERSION,
-    tool: { name: 'SkillGuard', version: '0.1.0' },
+    tool: { name: 'SkillGuard', version: VERSION },
     files: entries,
     skipped
   };
