@@ -48,7 +48,7 @@ function parseArgs(argv) {
   const args = [...argv];
   let command = 'scan';
   if (['scan', 'lock', 'verify'].includes(args[0])) command = args.shift();
-  const result = { command, paths: [], format: 'text', output: null, lock: null, failOn: 'high', maxFiles: 5000, maxFileBytes: 1024 * 1024, maxDirectories: 10000, maxDepth: 40, color: process.stdout.isTTY === true, help: false, version: false };
+  const result = { command, paths: [], format: 'text', output: null, lock: null, failOn: 'high', maxFiles: 5000, maxFileBytes: 1024 * 1024, maxDirectories: 10000, maxDepth: 40, allowSkipped: false, color: process.stdout.isTTY === true, help: false, version: false };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     const next = () => {
@@ -137,6 +137,10 @@ export async function run(argv = process.argv.slice(2)) {
     await writeOutput(options.output, rendered);
     if (!files.length) {
       process.stderr.write('SkillGuard: no supported files could be scanned. Check the path and skipped-file details.\n');
+      return 2;
+    }
+    if (skipped.length && !options.allowSkipped) {
+      process.stderr.write(`SkillGuard: scan incomplete; ${skipped.length} item(s) were skipped. Resolve them or explicitly pass --allow-skipped.\\n`);
       return 2;
     }
     const threshold = SEVERITY_ORDER[options.failOn];
