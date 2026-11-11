@@ -52,7 +52,11 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text', limits =
     if (entry.isSymbolicLink()) {
       skipped.push({ file: absolute, reason: 'Symbolic link was not followed.' });
     } else if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) await walk(absolute, found, skipped, maxFiles, mode, limits, depth + 1);
+      const excluded = mode === 'all' ? entry.name === '.git' : SKIP_DIRS.has(entry.name);
+      if (!excluded) await walk(absolute, found, skipped, maxFiles, mode, limits, depth + 1);
+      else if (mode !== 'all' && entry.name !== '.git') {
+        skipped.push({ file: absolute, reason: 'Directory excluded by scan policy; inspect it separately if it contains executable skill content.' });
+      }
     } else if (entry.isFile() && (mode === 'all' || entry.name.toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))) {
       found.push(absolute);
     } else if (entry.isFile() && mode !== 'all') {
@@ -80,6 +84,8 @@ async function findSkillDirectories(directory, found, skipped, limits = { maxDir
       skipped.push({ file: absolute, reason: 'Symbolic link was not followed.' });
     } else if (entry.isDirectory() && !SKIP_DIRS.has(entry.name)) {
       await findSkillDirectories(absolute, found, skipped, limits, depth + 1);
+    } else if (entry.isDirectory() && entry.name !== '.git') {
+      skipped.push({ file: absolute, reason: 'Directory excluded by skill discovery policy.' });
     }
   }
 }
