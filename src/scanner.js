@@ -128,10 +128,12 @@ function decodeBase64Candidate(value, encoding = 'utf8') {
   const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
   const bytes = Buffer.from(padded, 'base64');
   if (bytes.length > 65536 || bytes.toString('base64').replace(/=+$/, '') !== normalized) return null;
-  const decoded = bytes.toString(encoding);
+  const rawDecoded = bytes.toString(encoding);
+  const decoded = encoding === 'utf16le' ? rawDecoded.replace(/\u0000/g, '') : rawDecoded;
   if (!decoded) return null;
-  const visible = [...decoded].filter((character) => character === '\n' || character === '\r' || character === '\t' || character.codePointAt(0) >= 0x20).length;
-  if (visible / [...decoded].length < 0.85) return null;
+  const characters = [...decoded];
+  const visible = characters.filter((character) => character === '\n' || character === '\r' || character === '\t' || character.codePointAt(0) >= 0x20).length;
+  if (visible / characters.length < 0.85) return null;
   return decoded;
 }
 
