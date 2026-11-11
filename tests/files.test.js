@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { collectFiles } from '../src/files.js';
+import { readRegularFile } from '../src/safe-fs.js';
 
 test('enforces maxFiles across multiple explicit file inputs', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-files-'));
@@ -123,3 +124,26 @@ test('handles a large directory while respecting the file cap', async (t) => {
   assert.ok(result.skipped.some((item) => /File limit \(75\) reached/.test(item.reason)));
 });
 
+
+
+test('safe file reads reject symlinks and non-regular files', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-safe-read-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const target = path.join(root, 'target.md');
+  const link = path.join(root, 'link.md');
+  await fs.writeFile(target, 'safe content');
+  await fs.symlink(target, link);
+  await assert.rejects(() => readRegularFile(link), /symbolic link/i);
+  await assert.rejects(() => readRegularFile(root), /non-regular file/i);
+});
+
+test('safe file reads enforce byte limits before allocating file contents', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-safe-size-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const file = path.join(root, 'large.md');
+  await fs.writeFile(file, '1234567890');
+  const result = await readRegularFile(file, { maxBytes: 5 });
+  assert.equal(result.oversized, true);
+  assert.equal(result.bytes, null);
+  assert.equal(result.stat.size, 10);
+});
