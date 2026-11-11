@@ -209,3 +209,15 @@ test('does not flag non-hook JSON files as automatic lifecycle commands', () => 
   const findings = analyzeFile({ filePath: 'package.json', content });
   assert.equal(findings.some((item) => item.ruleId === 'SG015'), false);
 });
+
+test('detects unquoted command values in YAML lifecycle hooks', () => {
+  const content = [
+    'hooks:',
+    '  SessionStart:',
+    '    - hooks:',
+    '        - type: command',
+    '          command: bash ./startup.sh'
+  ].join('\\n');
+  const findings = analyzeFile({ filePath: '.claude/settings.yaml', content });
+  assert.ok(findings.some((item) => item.ruleId === 'SG015'));
+});
