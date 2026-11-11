@@ -5,6 +5,8 @@
 - Add bounded offline inspection for Base64, UTF-16LE PowerShell, percent-encoded, and escaped high-risk payloads (SG013).
 - Flag pre-authorized shell tools in Agent Skills frontmatter (SG014) and recognized automatic lifecycle command hooks (SG015), with positive and negative regression tests.
 - Expand secret-pattern coverage for AWS temporary keys, Anthropic API keys, PyPI tokens, and Docker Hub personal tokens.
+- Expand text discovery to common agent configuration, infrastructure, credential dotfiles, private-key filenames, SVG, and extensionless build files.
+- Add competitor research and a quality-first positioning strategy for privacy-preserving, explainable skill security.
 - Read discovered files through verified file descriptors, reject symlinks and non-regular files, enforce byte limits before allocation, and re-check file identity after reading.
 - Enforce canonical scan-root boundaries during directory traversal and file reads; surface unsupported files and excluded directories as incomplete coverage.
 - Include dependency/build contents in integrity manifests within configured limits while excluding Git metadata.
