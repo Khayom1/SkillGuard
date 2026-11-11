@@ -61,3 +61,25 @@ test('CLI accepts directory traversal limits and rejects invalid values', () => 
   assert.equal(invalid.status, 2);
   assert.match(invalid.stderr, /--max-directories/i);
 });
+
+test('fails closed when a scan skips files unless explicitly allowed', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-incomplete-'));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  await fs.writeFile(
+    path.join(temp, 'SKILL.md'),
+    '---\\nname: demo-skill\\ndescription: A small test skill.\\n---\\n'
+  );
+  await fs.writeFile(path.join(temp, 'reference.md'), 'x'.repeat(256));
+
+  const strict = run([temp, '--format', 'json', '--max-file-bytes', '100', '--fail-on', 'none']);
+  assert.equal(strict.status, 2);
+  const strictReport = JSON.parse(strict.stdout);
+  assert.equal(strictReport.summary.complete, false);
+  assert.ok(strictReport.summary.skipped >= 1);
+  assert.match(strict.stderr, /scan incomplete/i);
+
+  const permissive = run([temp, '--format', 'json', '--max-file-bytes', '100', '--fail-on', 'none', '--allow-skipped']);
+  assert.equal(permissive.status, 0, permissive.stderr);
+  const permissiveReport = JSON.parse(permissive.stdout);
+  assert.equal(permissiveReport.summary.complete, false);
+});
