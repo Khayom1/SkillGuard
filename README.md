@@ -150,7 +150,12 @@ cd SkillGuard
 npm test
 npm run check
 node src/cli.js examples/safe-skill --format json --fail-on none
+
+# Inspect an intentionally unsafe, inert fixture
+node src/cli.js examples/risky-skill --format text --fail-on none
 ```
+
+The `examples/risky-skill` fixture is deliberately unsafe text for scanner demonstrations. Its shell example is only a comment and must never be executed.
 
 - Node.js 18+
 - Zero runtime dependencies

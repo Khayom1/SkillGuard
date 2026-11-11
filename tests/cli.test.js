@@ -24,6 +24,14 @@ test('CLI emits parseable JSON for a safe skill', () => {
   assert.ok(parsed.summary.filesScanned >= 1);
 });
 
+test('CLI detects the intentionally unsafe example fixture', () => {
+  const result = run(['examples/risky-skill', '--format', 'json', '--fail-on', 'high']);
+  assert.equal(result.status, 1);
+  const report = JSON.parse(result.stdout);
+  assert.ok(report.findings.some((item) => item.ruleId === 'SG003'));
+  assert.ok(report.findings.some((item) => item.ruleId === 'SG006'));
+});
+
 test('CLI rejects unknown options', () => {
   const result = run(['--not-a-real-option']);
   assert.equal(result.status, 2);
