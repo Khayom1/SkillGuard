@@ -193,9 +193,11 @@ test('includes credential dotfiles and common extensionless build files', async 
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const env = path.join(root, '.env');
   const dockerfile = path.join(root, 'Dockerfile');
+  const privateKey = path.join(root, 'id_ed25519');
   await fs.writeFile(env, 'APP_MODE=production');
   await fs.writeFile(dockerfile, 'FROM node:20');
-  const result = await collectFiles([env, dockerfile]);
-  assert.deepEqual(result.files.map((item) => item.filePath), [env, dockerfile]);
+  await fs.writeFile(privateKey, '-----BEGIN OPENSSH PRIVATE KEY-----\\nnot-a-real-key\\n-----END OPENSSH PRIVATE KEY-----');
+  const result = await collectFiles([env, dockerfile, privateKey]);
+  assert.deepEqual(result.files.map((item) => item.filePath), [env, dockerfile, privateKey]);
   assert.equal(result.skipped.length, 0);
 });
