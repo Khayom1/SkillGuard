@@ -63,7 +63,10 @@ export async function collectFiles(inputPaths, options = {}) {
   const maxFiles = Number.isInteger(options.maxFiles) ? options.maxFiles : 5000;
   const maxDirectories = Number.isInteger(options.maxDirectories) ? options.maxDirectories : 10000;
   const maxDepth = Number.isInteger(options.maxDepth) ? options.maxDepth : 40;
-  if (maxFiles < 1 || maxDirectories < 1 || maxDepth < 0) throw new Error('File and directory limits must be positive integers; maxDepth may be zero.');
+  const maxFileBytes = options.maxFileBytes ?? MAX_FILE_BYTES;
+  if (maxFiles < 1 || maxDirectories < 1 || maxDepth < 0 || !Number.isSafeInteger(maxFileBytes) || maxFileBytes < 1) {
+    throw new Error('File and directory limits must be positive integers; maxDepth may be zero.');
+  }
   const found = [];
   const skipped = [];
   const roots = [];
@@ -111,8 +114,8 @@ export async function collectFiles(inputPaths, options = {}) {
   for (const filePath of unique) {
     try {
       const stat = await fs.stat(filePath);
-      if (stat.size > (options.maxFileBytes ?? MAX_FILE_BYTES)) {
-        skipped.push({ file: filePath, reason: `File exceeds ${options.maxFileBytes ?? MAX_FILE_BYTES} bytes.` });
+      if (stat.size > maxFileBytes) {
+        skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
         continue;
       }
       const content = await fs.readFile(filePath, 'utf8');
