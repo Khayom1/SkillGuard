@@ -2,13 +2,13 @@
 
 ## Run it
 
-\`\`\`bash
+```bash
 npm run benchmark
-\`\`\`
+```
 
-The benchmark is offline and uses the versioned synthetic cases in \`benchmarks/cases.json\`. It reports case-level true positives, false positives, true negatives, false negatives, precision, recall, F1, and specificity.
+The benchmark is offline and uses the versioned synthetic cases in `benchmarks/cases.json`. It reports case-level true positives, false positives, true negatives, false negatives, precision, recall, F1, and specificity.
 
-The benchmark command exits non-zero when a malicious regression case is missed or a benign case is flagged at high/critical severity. It is also included in \`npm test\`.
+The benchmark command exits non-zero when a malicious regression case is missed or a benign case is flagged at high/critical severity. It is also included in `npm test`.
 
 ## What this benchmark is — and is not
 
