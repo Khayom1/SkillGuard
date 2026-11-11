@@ -16,6 +16,7 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG010 | High | Encoded content passed to dynamic code execution. |
 | SG011 | Critical | Patterns combining environment/secret access with network transfer. |
 | SG012 | Medium | Broad privilege or unsafe filesystem permission settings. |
+| SG013 | High | Base64, UTF-16LE PowerShell, percent-encoded, or escaped content decodes to a recognizable high-risk instruction or command. |
 
 ## Scoring
 
@@ -28,3 +29,10 @@ The score starts at 100 and subtracts 35 points per critical finding, 20 per hig
 - SkillGuard does not interpret every YAML feature or execute scripts.
 - Obfuscated, novel, multi-stage, or agent-context-dependent attacks may evade static checks.
 - A clean scan is not a security certification. Review permissions, sandbox the agent, and require approval for consequential actions.
+
+
+## Encoded payload inspection
+
+SG013 performs bounded, offline decoding of selected common representations. It checks decoded text against a small set of high-risk behaviors such as instruction overrides, download-and-execute chains, secret exfiltration, and destructive commands. It does not run decoded content, and it does not claim to decode arbitrary encodings, nested layers, compressed payloads, or custom obfuscators.
+
+A positive SG013 finding means that recognizable risky text was found inside an encoded value. Review the surrounding source and its intended purpose before deciding how to respond.
