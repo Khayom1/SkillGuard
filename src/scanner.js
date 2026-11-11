@@ -22,7 +22,7 @@ function addFinding(findings, file, line, ruleId, message, snippet = '', extra =
     message,
     file,
     line,
-    snippet: String(snippet).trim().slice(0, 180),
+    snippet: redactSecretValues(String(snippet)).trim().slice(0, 180),
     ...extra
   });
 }
