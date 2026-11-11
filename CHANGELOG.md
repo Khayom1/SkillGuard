@@ -1,34 +1,33 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-11-11
+
+### Detection
+- Add **SG016** (reverse shell / remote interactive access) and **SG017** (unsafe dynamic execution: `eval`/`exec`, `shell=True`, PowerShell IEX).
+- Expand prompt-injection coverage with jailbreak-style role overrides.
+- Expand secret patterns (xAI keys, Bearer tokens).
+- Strengthen PowerShell download-and-execute detection.
+- Enrich the intentional `examples/risky-skill` fixture so more rule families are exercised.
+
+### Packaging
+- Bump package version to **0.2.0**.
+- Improve npm description and keywords for discoverability (`skill-security`, `supply-chain`, `claude`, `cursor`, `mcp`, `offline`, `zero-dependencies`).
+- Include `CHANGELOG.md` in the published package.
+
+### Documentation
+- Update rule reference for SG016 and SG017.
+
+## Unreleased / prior work folded into 0.1.x development
 
 - Add bounded offline inspection for Base64, UTF-16LE PowerShell, percent-encoded, and escaped high-risk payloads (SG013).
-- Flag pre-authorized shell tools in Agent Skills frontmatter (SG014) and recognized automatic lifecycle command hooks (SG015), with positive and negative regression tests.
-- Expand secret-pattern coverage for AWS temporary keys, Anthropic API keys, PyPI tokens, and Docker Hub personal tokens.
-- Expand text discovery to common agent configuration, infrastructure, credential dotfiles, private-key filenames, SVG, and extensionless build files.
-- Add competitor research and a quality-first positioning strategy for privacy-preserving, explainable skill security.
-- Read discovered files through verified file descriptors, reject symlinks and non-regular files, enforce byte limits before allocation, and re-check file identity after reading.
-- Enforce canonical scan-root boundaries during directory traversal and file reads; surface unsupported files and excluded directories as incomplete coverage.
-- Include dependency/build contents in integrity manifests within configured limits while excluding Git metadata.
-- Read integrity lock inputs through the safe file reader with a 16 MiB ceiling and reject symlink lock files.
-- Make incomplete scans fail closed with exit code 2 unless the caller explicitly uses --allow-skipped; expose completeness in JSON and SARIF reports.
-- Add a synthetic offline benchmark with precision, recall, F1, and specificity metrics; make it part of the local verification and pre-publish gates.
-- Add the threat model, architecture guide, benchmark methodology, and regression coverage for the new behavior.
-
-- Redact every detected secret value from all finding snippets, including findings raised by other rules.
-- Detect additional credential formats for Google, GitLab, npm, Hugging Face, Stripe, Telegram, and AWS secret-key assignments.
-- Load the CLI and report version from a single package metadata source.
-- Add regression coverage for repeated secrets and cross-rule snippet redaction.
-- Enforce the configured file limit across multiple explicit file inputs.
-- Add an npm Trusted Publishing workflow and release checklist.
-- Add an inert risky-skill fixture and an end-to-end CLI detection test.
-- Declare the package author and add pre-publish test and syntax checks.
-
-
-## 0.1.0 — planned
-
-- Initial public MVP.
-- Offline scanning of Agent Skills files and bundled text-based scripts.
-- Frontmatter checks, hidden Unicode checks, secret-pattern detection, and risky instruction/command heuristics.
+- Flag pre-authorized shell tools in Agent Skills frontmatter (SG014) and recognized automatic lifecycle command hooks (SG015).
+- Expand secret-pattern coverage for AWS temporary keys, Anthropic, PyPI, Docker Hub, Google, GitLab, npm, Hugging Face, Stripe, Telegram.
+- Safe file reads via verified file descriptors, bounded traversal, incomplete-scan reporting.
+- Integrity lock (SHA-256 + permission modes).
 - Text, JSON, and SARIF 2.1.0 reports.
-- Configurable severity exit threshold and a composite GitHub Action.
+- GitHub Action and Trusted Publishing workflow.
+- Synthetic offline benchmark and threat model.
+
+## 0.1.0
+
+- Initial public MVP foundation.

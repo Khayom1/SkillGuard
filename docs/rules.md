@@ -1,15 +1,15 @@
 # Detection rules
 
-SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID, file, line, severity, and a short explanation. The list below describes what the first release looks for.
+SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID, file, line, severity, and a short explanation.
 
 | ID | Severity | What it flags |
 | --- | --- | --- |
 | SG001 | High | Zero-width, bidirectional, and unexpected control characters. |
 | SG002 | Medium | Missing or invalid required Agent Skills frontmatter fields. |
-| SG003 | High | Recognizable attempts to override prior, system, or developer instructions. |
+| SG003 | High | Recognizable attempts to override prior, system, or developer instructions, including jailbreak-style role overrides. |
 | SG004 | High | Requests to reveal private prompts, tokens, credentials, or environment secrets. |
-| SG005 | Critical | Common GitHub, AWS (including temporary access key IDs), Google, Anthropic, GitLab, npm, PyPI, Docker Hub, Hugging Face, Stripe, Telegram, Slack, and private-key credential patterns. |
-| SG006 | Critical | Remote download content piped directly into a shell or interpreter. |
+| SG005 | Critical | Common GitHub, AWS (including temporary access key IDs), Google, Anthropic, GitLab, npm, PyPI, Docker Hub, Hugging Face, Stripe, Telegram, Slack, xAI, Bearer, and private-key credential patterns. |
+| SG006 | Critical | Remote download content piped directly into a shell, interpreter, or PowerShell IEX. |
 | SG007 | Critical | Recognizable destructive disk or recursive-delete commands. |
 | SG008 | High | Startup, service, scheduled-task, or autorun persistence changes. |
 | SG009 | High | References to common credential stores and private-key locations. |
@@ -19,6 +19,8 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG013 | High | Base64, UTF-16LE PowerShell, percent-encoded, or escaped content decodes to a recognizable high-risk instruction or command. |
 | SG014 | Medium | Agent Skills frontmatter pre-authorizes shell, terminal, or command execution tools. Review whether the permission is required and narrowly scoped. |
 | SG015 | Medium | A recognized agent lifecycle hook is paired with a command/script setting that may run automatically. Review its trigger and side effects. |
+| SG016 | Critical | Reverse-shell, netcat listener, or remote interactive shell patterns. |
+| SG017 | High | Dynamic execution primitives such as `eval`/`exec` of user data, Python `subprocess(..., shell=True)`, or PowerShell `Invoke-Expression`. |
 
 ## Scoring
 
@@ -31,7 +33,6 @@ The score starts at 100 and subtracts 35 points per critical finding, 20 per hig
 - SkillGuard does not interpret every YAML feature or execute scripts.
 - Obfuscated, novel, multi-stage, or agent-context-dependent attacks may evade static checks.
 - A clean scan is not a security certification. Review permissions, sandbox the agent, and require approval for consequential actions.
-
 
 ## Encoded payload inspection
 
