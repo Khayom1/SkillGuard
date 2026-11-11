@@ -1,0 +1,22 @@
+{
+  "name": "skillguard-ai",
+  "version": "0.1.0",
+  "description": "Offline security auditing for AI agent skills and their bundled scripts.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "bin": { "skillguard": "./src/cli.js" },
+  "exports": {
+    ".": "./src/index.js",
+    "./scanner": "./src/scanner.js",
+    "./frontmatter": "./src/frontmatter.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/scanner.js && node --check src/files.js && node --check src/frontmatter.js && node --check src/reporters.js && node --check src/integrity.js && node --check tests/scanner.test.js && node --check tests/cli.test.js && node --check tests/integrity.test.js"
+  },
+  "keywords": ["ai-agents", "agent-skills", "security", "prompt-injection", "static-analysis", "sarif", "github-action"],
+  "repository": { "type": "git", "url": "https://github.com/Khayom1/SkillGuard.git" },
+  "bugs": { "url": "https://github.com/Khayom1/SkillGuard/issues" },
+  "homepage": "https://github.com/Khayom1/SkillGuard#readme"
+}

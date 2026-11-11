@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If SkillGuard helps your work, please cite this repository."
+title: "SkillGuard: Security auditing and integrity verification for AI agent skills"
+authors:
+  - family-names: Abdurahmonov
+    given-names: Khayom
+version: 0.1.0
+date-released: 2026-11-11
+license: MIT
+repository-code: "https://github.com/Khayom1/SkillGuard"

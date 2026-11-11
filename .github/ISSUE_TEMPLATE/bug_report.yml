@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a reproducible bug or false positive.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve SkillGuard. Do not paste real API keys or private data.
+  - type: input
+    id: version
+    attributes:
+      label: SkillGuard version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include a minimal sanitized example.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

@@ -1,0 +1,17 @@
+export const RULES = [
+  { id: 'SG001', name: 'Invisible or directional Unicode', short: 'Hidden Unicode can conceal instructions from reviewers.', severity: 'high', description: 'The file contains zero-width, bidirectional override, or unexpected control characters that can hide or reorder text.' },
+  { id: 'SG002', name: 'Invalid Agent Skills frontmatter', short: 'The SKILL.md metadata does not meet required format checks.', severity: 'medium', description: 'The SKILL.md frontmatter is missing, malformed, or has invalid required fields.' },
+  { id: 'SG003', name: 'Instruction hierarchy override', short: 'The content attempts to override higher-priority instructions.', severity: 'high', description: 'The content contains a recognizable instruction to ignore, replace, or bypass prior/system/developer instructions.' },
+  { id: 'SG004', name: 'Prompt or credential extraction', short: 'The content asks an agent to reveal private prompts or credentials.', severity: 'high', description: 'The content asks for system/developer prompts, environment secrets, tokens, or private keys.' },
+  { id: 'SG005', name: 'Hard-coded secret', short: 'A token, private key, or credential-like value appears in the file.', severity: 'critical', description: 'A recognizable credential pattern appears in a skill file. Values are redacted in reports.' },
+  { id: 'SG006', name: 'Download-and-execute chain', short: 'Remote content is downloaded and executed without review.', severity: 'critical', description: 'A command pattern downloads remote content and pipes or evaluates it as code.' },
+  { id: 'SG007', name: 'Destructive system command', short: 'A command can irreversibly delete or overwrite important data.', severity: 'critical', description: 'A recognizable destructive command or disk-formatting operation appears in executable instructions.' },
+  { id: 'SG008', name: 'Persistence or startup modification', short: 'The skill may install itself to run automatically later.', severity: 'high', description: 'The content modifies cron, services, startup folders, launch agents, or autorun registry keys.' },
+  { id: 'SG009', name: 'Sensitive file access', short: 'The skill references credential stores or private key locations.', severity: 'high', description: 'The content accesses common secret stores or credential files such as .ssh, .aws, .env, or key files.' },
+  { id: 'SG010', name: 'Obfuscated code execution', short: 'Encoded content is decoded and executed dynamically.', severity: 'high', description: 'The content combines decoding/obfuscation with a dynamic execution primitive.' },
+  { id: 'SG011', name: 'Potential secret exfiltration', short: 'Environment variables or credentials may be sent to a remote endpoint.', severity: 'critical', description: 'The content combines secret/environment access with a network upload or request.' },
+  { id: 'SG012', name: 'Overly broad privilege', short: 'The skill requests or configures broad system privileges.', severity: 'medium', description: 'The content requests elevated privileges or disables common filesystem permission boundaries.' }
+];
+
+export const SEVERITY_ORDER = Object.freeze({ critical: 4, high: 3, medium: 2, low: 1, none: 0 });
+export const SCORE_PENALTY = Object.freeze({ critical: 35, high: 20, medium: 9, low: 3 });

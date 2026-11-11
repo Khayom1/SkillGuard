@@ -1,0 +1,47 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const cli = path.join(root, 'src', 'cli.js');
+const run = (args) => spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: 'utf8' });
+
+test('CLI prints help', () => {
+  const result = run(['--help']);
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /security auditing/i);
+});
+
+test('CLI emits parseable JSON for a safe skill', () => {
+  const result = run(['examples/safe-skill', '--format', 'json', '--fail-on', 'none']);
+  assert.equal(result.status, 0, result.stderr);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.tool, 'SkillGuard');
+  assert.ok(parsed.summary.filesScanned >= 1);
+});
+
+test('CLI rejects unknown options', () => {
+  const result = run(['--not-a-real-option']);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Unknown option/i);
+});
+
+test('CLI creates, verifies, then detects integrity drift', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-cli-'));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const skill = path.join(temp, 'demo-skill');
+  await fs.mkdir(skill);
+  await fs.writeFile(path.join(skill, 'SKILL.md'), '---\nname: demo-skill\ndescription: Demo skill.\n---\n');
+  const locked = spawnSync(process.execPath, [cli, 'lock', skill], { cwd: root, encoding: 'utf8' });
+  assert.equal(locked.status, 0, locked.stderr);
+  const verified = spawnSync(process.execPath, [cli, 'verify', skill], { cwd: root, encoding: 'utf8' });
+  assert.equal(verified.status, 0, verified.stderr);
+  await fs.writeFile(path.join(skill, 'SKILL.md'), 'modified after review');
+  const drift = spawnSync(process.execPath, [cli, 'verify', skill], { cwd: root, encoding: 'utf8' });
+  assert.equal(drift.status, 1);
+  assert.match(drift.stdout, /DRIFT DETECTED/);
+});

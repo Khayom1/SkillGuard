@@ -1,0 +1,42 @@
+name: SkillGuard Security Scan
+description: Audit AI agent skills and bundled scripts for risky instructions and execution patterns.
+author: Khayom Abdurahmonov
+inputs:
+  path:
+    description: Path to a skill directory or file.
+    required: false
+    default: .
+  fail-on:
+    description: Minimum severity that fails the workflow (critical, high, medium, low, none).
+    required: false
+    default: high
+  upload-sarif:
+    description: Upload a SARIF report to GitHub Code Scanning (requires code-scanning write permission).
+    required: false
+    default: 'false'
+  sarif-file:
+    description: Path for the generated SARIF file.
+    required: false
+    default: skillguard.sarif
+runs:
+  using: composite
+  steps:
+    - name: Run SkillGuard
+      id: scan
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        SKILLGUARD_PATH: ${{ inputs.path }}
+        SKILLGUARD_FAIL_ON: ${{ inputs.fail-on }}
+        SKILLGUARD_SARIF: ${{ inputs.sarif-file }}
+      run: |
+        node "$GITHUB_ACTION_PATH/src/cli.js" "$SKILLGUARD_PATH" --format sarif --output "$SKILLGUARD_SARIF" --fail-on "$SKILLGUARD_FAIL_ON"
+    - name: Upload SARIF to GitHub Code Scanning
+      if: ${{ always() && inputs.upload-sarif == 'true' && hashFiles(inputs.sarif-file) != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+
+branding:
+  icon: shield
+  color: blue
