@@ -233,9 +233,9 @@ export function analyzeFile({ filePath, content }) {
       for (const error of parsed.errors) addFinding(findings, file, 1, 'SG002', error, text.split(/\r?\n/)[0] ?? '');
     } else {
       const allowedTools = parsed.fields['allowed-tools'] ?? '';
-      if (/(?:^|[\\s,])(?:bash|shell|terminal|exec|command)(?:$|[\\s,(])/i.test(allowedTools)) {
-        const lines = text.split(/\\r?\\n/);
-        const line = Math.max(1, lines.findIndex((item) => /^\\s*allowed-tools\\s*:/i.test(item)) + 1);
+      if (/(?:^|[\s,])(?:bash|shell|terminal|exec|command)(?:$|[\s,(])/i.test(allowedTools)) {
+        const lines = text.split(/\r?\n/);
+        const line = Math.max(1, lines.findIndex((item) => /^\s*allowed-tools\s*:/i.test(item)) + 1);
         addFinding(findings, file, line, 'SG014', 'The skill pre-authorizes a shell or command execution tool. Confirm that this permission is necessary and narrowly scoped.', lines[line - 1] ?? '');
       }
       const parentName = path.basename(path.dirname(file));
