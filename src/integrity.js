@@ -12,13 +12,14 @@ export async function createIntegrityLock(rootPath, options = {}) {
   const excluded = new Set((options.exclude ?? []).map((item) => path.resolve(item)));
   const entries = [];
   const maxTotalBytes = options.maxTotalBytes ?? DEFAULT_MAX_TOTAL_BYTES;
+  const maxFileBytes = options.maxFileBytes ?? 100 * 1024 * 1024;
   if (!Number.isSafeInteger(maxTotalBytes) || maxTotalBytes < 1) throw new Error('maxTotalBytes must be a positive safe integer.');
+  if (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < 1) throw new Error('maxFileBytes must be a positive safe integer.');
   let totalBytes = 0;
   for (const filePath of files) {
     if (excluded.has(path.resolve(filePath))) continue;
     const stat = await fs.lstat(filePath);
     if (stat.isSymbolicLink()) throw new Error('A symbolic link appeared during lock creation; retry after removing it.');
-    const maxFileBytes = options.maxFileBytes ?? 100 * 1024 * 1024;
     if (stat.size > maxFileBytes) {
       skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
       continue;
