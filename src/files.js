@@ -10,6 +10,10 @@ async function exists(filePath) {
 }
 
 async function walk(directory, found, skipped, maxFiles, mode = 'text') {
+  if (found.length >= maxFiles) {
+    skipped.push({ file: directory, reason: `File limit (${maxFiles}) reached; directory was not scanned.` });
+    return;
+  }
   let entries;
   try { entries = await fs.readdir(directory, { withFileTypes: true }); }
   catch (error) { skipped.push({ file: directory, reason: `Cannot read directory: ${error.message}` }); return; }
@@ -30,7 +34,7 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text') {
   }
 }
 
-async function findSkillDirectories(directory, found, skipped, maxFiles) {
+async function findSkillDirectories(directory, found, skipped) {
   let entries;
   try { entries = await fs.readdir(directory, { withFileTypes: true }); }
   catch (error) { skipped.push({ file: directory, reason: `Cannot read directory: ${error.message}` }); return; }
@@ -40,9 +44,8 @@ async function findSkillDirectories(directory, found, skipped, maxFiles) {
   }
   entries.sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
-    if (found.length >= maxFiles) return;
     if (entry.isDirectory() && !entry.isSymbolicLink() && !SKIP_DIRS.has(entry.name)) {
-      await findSkillDirectories(path.join(directory, entry.name), found, skipped, maxFiles);
+      await findSkillDirectories(path.join(directory, entry.name), found, skipped);
     }
   }
 }
@@ -80,7 +83,7 @@ export async function collectFiles(inputPaths, options = {}) {
       await walk(absolute, found, skipped, maxFiles, 'text');
     } else {
       const skillDirectories = [];
-      await findSkillDirectories(absolute, skillDirectories, skipped, maxFiles);
+      await findSkillDirectories(absolute, skillDirectories, skipped);
       if (skillDirectories.length) {
         for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text');
       } else {
