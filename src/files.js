@@ -4,7 +4,7 @@ import { readRegularFile } from './safe-fs.js';
 
 export const MAX_FILE_BYTES = 1024 * 1024;
 export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
-const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.env', '.sh', '.bash', '.zsh', '.ps1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.sql', '.html', '.xml', '.ipynb']);
+const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.jsonc', '.json5', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env', '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.scala', '.lua', '.r', '.ex', '.exs', '.swift', '.dart', '.c', '.h', '.cc', '.cpp', '.cs', '.sql', '.html', '.xml', '.svg', '.css', '.scss', '.less', '.ipynb']);
 
 async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
@@ -34,6 +34,8 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text', limits =
       if (!SKIP_DIRS.has(entry.name)) await walk(absolute, found, skipped, maxFiles, mode, limits, depth + 1);
     } else if (entry.isFile() && (mode === 'all' || entry.name.toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))) {
       found.push(absolute);
+    } else if (entry.isFile() && mode !== 'all') {
+      skipped.push({ file: absolute, reason: 'Unsupported file type; text analysis did not inspect this file.' });
     }
   }
 }
