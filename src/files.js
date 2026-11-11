@@ -10,6 +10,26 @@ async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
 }
 
+function isWithinDirectory(root, target) {
+  const relative = path.relative(root, target);
+  return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
+async function isSafeDirectory(directory, limits, skipped) {
+  if (!limits.boundaryRoot) return true;
+  try {
+    const [canonical, stat] = await Promise.all([fs.realpath(directory), fs.lstat(directory)]);
+    if (stat.isSymbolicLink() || !stat.isDirectory() || !isWithinDirectory(limits.boundaryRoot, canonical)) {
+      skipped.push({ file: directory, reason: 'Directory escaped the scan root or changed into a symbolic link.' });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    skipped.push({ file: directory, reason: `Cannot safely inspect directory: ${error.message}` });
+    return false;
+  }
+}
+
 async function walk(directory, found, skipped, maxFiles, mode = 'text', limits = { maxDirectories: 10000, maxDepth: 40, visited: 0 }, depth = 0) {
   if (depth > limits.maxDepth) { skipped.push({ file: directory, reason: `Directory depth limit (${limits.maxDepth}) reached.` }); return; }
   limits.visited += 1;
@@ -18,6 +38,7 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text', limits =
     skipped.push({ file: directory, reason: `File limit (${maxFiles}) reached; directory was not scanned.` });
     return;
   }
+  if (!(await isSafeDirectory(directory, limits, skipped))) return;
   let entries;
   try { entries = await fs.readdir(directory, { withFileTypes: true }); }
   catch (error) { skipped.push({ file: directory, reason: `Cannot read directory: ${error.message}` }); return; }
@@ -44,6 +65,7 @@ async function findSkillDirectories(directory, found, skipped, limits = { maxDir
   if (depth > limits.maxDepth) { skipped.push({ file: directory, reason: `Directory depth limit (${limits.maxDepth}) reached.` }); return; }
   limits.visited += 1;
   if (limits.visited > limits.maxDirectories) { skipped.push({ file: directory, reason: `Directory limit (${limits.maxDirectories}) reached.` }); return; }
+  if (!(await isSafeDirectory(directory, limits, skipped))) return;
   let entries;
   try { entries = await fs.readdir(directory, { withFileTypes: true }); }
   catch (error) { skipped.push({ file: directory, reason: `Cannot read directory: ${error.message}` }); return; }
@@ -73,6 +95,7 @@ export async function collectFiles(inputPaths, options = {}) {
   const found = [];
   const skipped = [];
   const roots = [];
+  const rootBoundaries = [];
 
   for (const input of inputPaths.length ? inputPaths : ['.']) {
     const absolute = path.resolve(input);
@@ -85,7 +108,11 @@ export async function collectFiles(inputPaths, options = {}) {
       skipped.push({ file: input, reason: 'Symbolic links are not followed.' });
       continue;
     }
+    const boundaryRoot = stat.isDirectory()
+      ? await fs.realpath(absolute)
+      : await fs.realpath(path.dirname(absolute));
     roots.push(absolute);
+    rootBoundaries.push({ inputPath: absolute, boundaryRoot });
     if (stat.isFile()) {
       if (found.length >= maxFiles) {
         skipped.push({ file: input, reason: `File limit (${maxFiles}) reached.` });
@@ -98,16 +125,16 @@ export async function collectFiles(inputPaths, options = {}) {
 
     const rootSkill = path.join(absolute, 'SKILL.md');
     if (await exists(rootSkill)) {
-      await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
+      await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0, boundaryRoot });
     } else {
       const skillDirectories = [];
-      await findSkillDirectories(absolute, skillDirectories, skipped, { maxDirectories, maxDepth, visited: 0 });
+      await findSkillDirectories(absolute, skillDirectories, skipped, { maxDirectories, maxDepth, visited: 0, boundaryRoot });
       if (skillDirectories.length) {
-        const walkLimits = { maxDirectories, maxDepth, visited: 0 };
+        const walkLimits = { maxDirectories, maxDepth, visited: 0, boundaryRoot };
         for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text', walkLimits);
       } else {
         // Useful fallback for explicitly supplied folders that are not Agent Skills bundles.
-        await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
+        await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0, boundaryRoot });
       }
     }
   }
@@ -116,7 +143,13 @@ export async function collectFiles(inputPaths, options = {}) {
   const files = [];
   for (const filePath of unique) {
     try {
-      const result = await readRegularFile(filePath, { maxBytes: maxFileBytes });
+      const boundary = rootBoundaries
+        .filter((item) => {
+          const relative = path.relative(item.inputPath, filePath);
+          return relative === '' || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+        })
+        .sort((a, b) => b.inputPath.length - a.inputPath.length)[0];
+      const result = await readRegularFile(filePath, { maxBytes: maxFileBytes, allowedRoot: boundary?.boundaryRoot });
       if (result.oversized) {
         skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
         continue;
@@ -141,9 +174,12 @@ export async function collectBundlePaths(root, options = {}) {
   const stat = await fs.lstat(absolute);
   if (stat.isSymbolicLink()) throw new Error('Refusing to create an integrity lock through a symbolic link.');
   const directory = stat.isDirectory() ? absolute : path.dirname(absolute);
+  const boundaryRoot = stat.isDirectory()
+    ? await fs.realpath(absolute)
+    : await fs.realpath(path.dirname(absolute));
   const files = [];
   const skipped = [];
   if (stat.isFile()) files.push(absolute);
-  else await walk(directory, files, skipped, options.maxFiles ?? 10000, 'all', { maxDirectories: options.maxDirectories ?? 10000, maxDepth: options.maxDepth ?? 40, visited: 0 });
-  return { root: directory, files, skipped };
+  else await walk(directory, files, skipped, options.maxFiles ?? 10000, 'all', { maxDirectories: options.maxDirectories ?? 10000, maxDepth: options.maxDepth ?? 40, visited: 0, boundaryRoot });
+  return { root: directory, boundaryRoot, files, skipped };
 }
