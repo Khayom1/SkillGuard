@@ -9,7 +9,10 @@ async function exists(filePath) {
   try { await fs.access(filePath); return true; } catch { return false; }
 }
 
-async function walk(directory, found, skipped, maxFiles, mode = 'text') {
+async function walk(directory, found, skipped, maxFiles, mode = 'text', limits = { maxDirectories: 10000, maxDepth: 40, visited: 0 }, depth = 0) {
+  if (depth > limits.maxDepth) { skipped.push({ file: directory, reason: `Directory depth limit (${limits.maxDepth}) reached.` }); return; }
+  limits.visited += 1;
+  if (limits.visited > limits.maxDirectories) { skipped.push({ file: directory, reason: `Directory limit (${limits.maxDirectories}) reached.` }); return; }
   if (found.length >= maxFiles) {
     skipped.push({ file: directory, reason: `File limit (${maxFiles}) reached; directory was not scanned.` });
     return;
@@ -27,14 +30,17 @@ async function walk(directory, found, skipped, maxFiles, mode = 'text') {
     if (entry.isSymbolicLink()) {
       skipped.push({ file: absolute, reason: 'Symbolic link was not followed.' });
     } else if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) await walk(absolute, found, skipped, maxFiles, mode);
+      if (!SKIP_DIRS.has(entry.name)) await walk(absolute, found, skipped, maxFiles, mode, limits, depth + 1);
     } else if (entry.isFile() && (mode === 'all' || entry.name.toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))) {
       found.push(absolute);
     }
   }
 }
 
-async function findSkillDirectories(directory, found, skipped) {
+async function findSkillDirectories(directory, found, skipped, limits = { maxDirectories: 10000, maxDepth: 40, visited: 0 }, depth = 0) {
+  if (depth > limits.maxDepth) { skipped.push({ file: directory, reason: `Directory depth limit (${limits.maxDepth}) reached.` }); return; }
+  limits.visited += 1;
+  if (limits.visited > limits.maxDirectories) { skipped.push({ file: directory, reason: `Directory limit (${limits.maxDirectories}) reached.` }); return; }
   let entries;
   try { entries = await fs.readdir(directory, { withFileTypes: true }); }
   catch (error) { skipped.push({ file: directory, reason: `Cannot read directory: ${error.message}` }); return; }
@@ -48,13 +54,16 @@ async function findSkillDirectories(directory, found, skipped) {
     if (entry.isSymbolicLink()) {
       skipped.push({ file: absolute, reason: 'Symbolic link was not followed.' });
     } else if (entry.isDirectory() && !SKIP_DIRS.has(entry.name)) {
-      await findSkillDirectories(absolute, found, skipped);
+      await findSkillDirectories(absolute, found, skipped, limits, depth + 1);
     }
   }
 }
 
 export async function collectFiles(inputPaths, options = {}) {
   const maxFiles = Number.isInteger(options.maxFiles) ? options.maxFiles : 5000;
+  const maxDirectories = Number.isInteger(options.maxDirectories) ? options.maxDirectories : 10000;
+  const maxDepth = Number.isInteger(options.maxDepth) ? options.maxDepth : 40;
+  if (maxFiles < 1 || maxDirectories < 1 || maxDepth < 0) throw new Error('File and directory limits must be positive integers; maxDepth may be zero.');
   const found = [];
   const skipped = [];
   const roots = [];
@@ -83,15 +92,15 @@ export async function collectFiles(inputPaths, options = {}) {
 
     const rootSkill = path.join(absolute, 'SKILL.md');
     if (await exists(rootSkill)) {
-      await walk(absolute, found, skipped, maxFiles, 'text');
+      await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
     } else {
       const skillDirectories = [];
-      await findSkillDirectories(absolute, skillDirectories, skipped);
+      await findSkillDirectories(absolute, skillDirectories, skipped, { maxDirectories, maxDepth, visited: 0 });
       if (skillDirectories.length) {
-        for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text');
+        for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
       } else {
         // Useful fallback for explicitly supplied folders that are not Agent Skills bundles.
-        await walk(absolute, found, skipped, maxFiles, 'text');
+        await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
       }
     }
   }
@@ -128,6 +137,6 @@ export async function collectBundlePaths(root, options = {}) {
   const files = [];
   const skipped = [];
   if (stat.isFile()) files.push(absolute);
-  else await walk(directory, files, skipped, options.maxFiles ?? 10000, 'all');
+  else await walk(directory, files, skipped, options.maxFiles ?? 10000, 'all', { maxDirectories: options.maxDirectories ?? 10000, maxDepth: options.maxDepth ?? 40, visited: 0 });
   return { root: directory, files, skipped };
 }
