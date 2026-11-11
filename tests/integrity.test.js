@@ -101,3 +101,15 @@ test('handles empty files and unusual filenames in integrity locks', async (t) =
   assert.ok(lock.files.some((entry) => entry.path.includes('файл-技能-🛡️.dat') && entry.size === 0));
 });
 
+test('integrity locks include dependency files but exclude Git metadata', async (t) => {
+  const root = await fixture(t);
+  const dependency = path.join(root, 'node_modules', 'demo', 'index.js');
+  const gitFile = path.join(root, '.git', 'config');
+  await fs.mkdir(path.dirname(dependency), { recursive: true });
+  await fs.mkdir(path.dirname(gitFile), { recursive: true });
+  await fs.writeFile(dependency, 'module.exports = 1;');
+  await fs.writeFile(gitFile, '[core]');
+  const lock = await createIntegrityLock(root);
+  assert.ok(lock.files.some((item) => item.path === 'node_modules/demo/index.js'));
+  assert.equal(lock.files.some((item) => item.path.startsWith('.git/')), false);
+});
