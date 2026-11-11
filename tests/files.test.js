@@ -147,3 +147,13 @@ test('safe file reads enforce byte limits before allocating file contents', asyn
   assert.equal(result.bytes, null);
   assert.equal(result.stat.size, 10);
 });
+
+test('reports unsupported binary assets instead of silently claiming full text coverage', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-unsupported-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await fs.writeFile(path.join(root, 'SKILL.md'), '---\nname: asset-skill\ndescription: A skill with an asset.\n---\n');
+  await fs.writeFile(path.join(root, 'diagram.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  const result = await collectFiles([root]);
+  assert.equal(result.files.length, 1);
+  assert.ok(result.skipped.some((item) => item.file.endsWith('diagram.png') && /unsupported file type/i.test(item.reason)));
+});
