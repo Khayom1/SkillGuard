@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1080" viewBox="0 0 1440 1080" role="img" aria-labelledby="title desc">
+<title id="title">SkillGuard — AI skill security scanner</title>
+<desc id="desc">Animated security audit illustration. AI skill files flow through a non-executing offline scanner, fifteen explainable detection rules, findings and JSON or SARIF reports for CI. A separate SHA-256 integrity lock detects file drift.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07131c"/><stop offset=".55" stop-color="#0c202a"/><stop offset="1" stop-color="#09131f"/></linearGradient>
+ <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#69f0c0"/><stop offset="1" stop-color="#27a9a0"/></linearGradient>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#65d7e8"/><stop offset="1" stop-color="#8b9cff"/></linearGradient>
+ <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#142b37"/><stop offset="1" stop-color="#0d1e29"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="shadow"><feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#000" flood-opacity=".38"/></filter>
+ <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse"><path d="M34 0H0V34" fill="none" stroke="#8de8d2" stroke-opacity=".05"/></pattern>
+ <style>
+ .t{font-family:Inter,Arial,sans-serif;fill:#effaf8}.m{font-family:Inter,Arial,sans-serif;fill:#91aeb6}.tiny{font-size:11px;letter-spacing:1.8px;font-weight:750}.small{font-size:14px}.label{font-size:18px;font-weight:750}.panel{fill:url(#panel);stroke:#294653;stroke-width:1.5}.mono{font-family:ui-monospace,Consolas,monospace}
+ </style>
+</defs>
+<rect width="1440" height="1080" rx="30" fill="url(#bg)"/><rect width="1440" height="1080" rx="30" fill="url(#grid)"/>
+<circle cx="1220" cy="110" r="300" fill="#43d9b0" opacity=".06"/><circle cx="90" cy="1000" r="260" fill="#4b94df" opacity=".05"/>
+<g transform="translate(72 54)"><rect width="60" height="60" rx="18" fill="url(#mint)"/><path d="M30 9 48 16v13c0 12-8 20-18 25C20 49 12 41 12 29V16Z" fill="none" stroke="#08232a" stroke-width="3"/><path d="m21 30 6 6 13-15" fill="none" stroke="#08232a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><text x="78" y="37" class="t" font-size="32" font-weight="850">SKILLGUARD</text><text x="80" y="56" class="m tiny">AI SKILL SECURITY · STATIC ANALYSIS</text></g>
+<text x="1368" y="86" text-anchor="end" fill="#74e6c5" class="tiny">OFFLINE · ZERO RUNTIME DEPS · CI-READY</text>
+<text x="72" y="218" class="t" font-size="68" font-weight="850" letter-spacing="-3">Trust the skill.</text>
+<text x="72" y="292" font-size="68" font-weight="850" letter-spacing="-3" fill="url(#blue)">Verify the bundle.</text>
+<text x="76" y="340" class="m" font-size="20">Inspect instructions, scripts and supporting files — without executing them.</text>
+<rect x="60" y="390" width="1320" height="430" rx="26" fill="#091722" stroke="#294653" filter="url(#shadow)"/>
+<text x="92" y="432" fill="#73e7c5" class="tiny">01 / SECURITY AUDIT PIPELINE</text>
+<text x="1348" y="432" text-anchor="end" class="m tiny">ILLUSTRATIVE SCAN · NO CODE EXECUTION</text>
+<!-- input files -->
+<g transform="translate(94 485)"><rect width="285" height="260" rx="18" class="panel"/><text x="22" y="34" class="m tiny">INPUT / SKILL BUNDLE</text>
+<g transform="translate(24 55)"><rect width="237" height="43" rx="9" fill="#102634" stroke="#365968"/><path d="M13 12h13l5 5v17H13Z" fill="none" stroke="#7edac9" stroke-width="1.6"/><text x="42" y="27" class="t mono small">SKILL.md</text></g>
+<g transform="translate(24 108)"><rect width="237" height="43" rx="9" fill="#102634" stroke="#365968"/><path d="M13 12h13l5 5v17H13Z" fill="none" stroke="#8eb5ff" stroke-width="1.6"/><text x="42" y="27" class="t mono small">scripts/install.sh</text></g>
+<g transform="translate(24 161)"><rect width="237" height="43" rx="9" fill="#102634" stroke="#365968"/><path d="M13 12h13l5 5v17H13Z" fill="none" stroke="#8eb5ff" stroke-width="1.6"/><text x="42" y="27" class="t mono small">references/*.md</text></g>
+<text x="24" y="237" class="m small">Read-only · bounded inspection</text></g>
+<!-- scanner -->
+<g transform="translate(480 485)"><rect width="380" height="260" rx="18" class="panel"/><text x="24" y="34" class="m tiny">CORE / SAFE STATIC SCANNER</text>
+<circle cx="190" cy="119" r="72" fill="#0b2730" stroke="#3b8e83" stroke-width="2"/><circle cx="190" cy="119" r="56" fill="none" stroke="#5bd8b4" stroke-width="2" stroke-dasharray="7 8"><animateTransform attributeName="transform" type="rotate" from="0 190 119" to="360 190 119" dur="18s" repeatCount="indefinite"/></circle><path d="M190 72 229 87v28c0 26-17 43-39 54-22-11-39-28-39-54V87Z" fill="#153e42" stroke="#79e7c5" stroke-width="2"/><path d="m171 116 13 13 27-31" fill="none" stroke="#a5f7d9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle r="5" fill="#8df5d2" filter="url(#glow)"><animateMotion dur="3.5s" repeatCount="indefinite" path="M190 47 A72 72 0 1 1 189.9 47"/></circle>
+<text x="190" y="218" text-anchor="middle" class="t label">15 detection rules</text><text x="190" y="241" text-anchor="middle" class="m small">No scripts run · No network calls</text></g>
+<!-- results -->
+<g transform="translate(960 485)"><rect width="380" height="260" rx="18" class="panel"/><text x="24" y="34" class="m tiny">OUTPUT / EXPLAINABLE FINDINGS</text>
+<g transform="translate(24 57)"><rect width="332" height="43" rx="9" fill="#3a1d28" stroke="#a34e5c"/><circle cx="20" cy="21" r="6" fill="#ff7186"/><text x="39" y="26" class="t small" font-weight="700">CRITICAL</text><text x="309" y="26" text-anchor="end" class="m small">SG005</text></g>
+<g transform="translate(24 110)"><rect width="332" height="43" rx="9" fill="#342b1b" stroke="#90723f"/><circle cx="20" cy="21" r="6" fill="#ffc36e"/><text x="39" y="26" class="t small" font-weight="700">HIGH</text><text x="309" y="26" text-anchor="end" class="m small">SG003</text></g>
+<g transform="translate(24 163)"><rect width="332" height="43" rx="9" fill="#1c3040" stroke="#466e8a"/><circle cx="20" cy="21" r="6" fill="#8fc7f0"/><text x="39" y="26" class="t small" font-weight="700">MEDIUM</text><text x="309" y="26" text-anchor="end" class="m small">SG014</text></g>
+<text x="24" y="237" class="m small">Rule ID · file · line · explanation</text></g>
+<!-- connectors -->
+<path d="M379 615H480 M860 615H960" stroke="#456775" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M379 615H480 M860 615H960" stroke="url(#blue)" stroke-width="3" stroke-dasharray="8 10" fill="none"><animate attributeName="stroke-dashoffset" values="0;-72" dur="1.5s" repeatCount="indefinite"/></path>
+<circle r="7" fill="#83efd0" filter="url(#glow)"><animateMotion dur="2.7s" repeatCount="indefinite" path="M379 615H480"/></circle><circle r="7" fill="#8caaff" filter="url(#glow)"><animateMotion dur="2.7s" repeatCount="indefinite" path="M860 615H960"/></circle>
+<!-- bottom features -->
+<text x="72" y="875" fill="#73e7c5" class="tiny">02 / FROM LOCAL REVIEW TO REPRODUCIBLE CI</text>
+<g transform="translate(60 905)"><rect width="310" height="112" rx="17" class="panel"/><text x="20" y="32" fill="#8db4ff" class="tiny">REPORTS</text><text x="20" y="64" class="t label">TEXT · JSON · SARIF</text><text x="20" y="89" class="m small">Machine-readable audit output</text></g>
+<g transform="translate(390 905)"><rect width="310" height="112" rx="17" class="panel"/><text x="20" y="32" fill="#73e7c5" class="tiny">GITHUB ACTION</text><text x="20" y="64" class="t label">Fail on severity</text><text x="20" y="89" class="m small">Optional Code Scanning upload</text></g>
+<g transform="translate(720 905)"><rect width="310" height="112" rx="17" class="panel"/><text x="20" y="32" fill="#8db4ff" class="tiny">INTEGRITY</text><text x="20" y="64" class="t label">SHA-256 lock</text><text x="20" y="89" class="m small">Detect added, changed, missing files</text></g>
+<g transform="translate(1050 905)"><rect width="330" height="112" rx="17" class="panel"/><text x="20" y="32" fill="#73e7c5" class="tiny">ENGINEERING</text><text x="20" y="64" class="t label">Node.js 18+ · 0 deps</text><text x="20" y="89" class="m small">Tests · benchmark · MIT license</text></g>
+<text x="720" y="1054" text-anchor="middle" class="m" font-size="12">STATIC ANALYSIS ≠ SECURITY CERTIFICATION · REVIEW FINDINGS · SANDBOX AGENTS</text>
+</svg>
