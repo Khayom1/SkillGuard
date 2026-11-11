@@ -67,7 +67,7 @@ test('fails closed when a scan skips files unless explicitly allowed', async (t)
   t.after(() => fs.rm(temp, { recursive: true, force: true }));
   await fs.writeFile(
     path.join(temp, 'SKILL.md'),
-    '---\\nname: demo-skill\\ndescription: A small test skill.\\n---\\n'
+    '---\nname: demo-skill\ndescription: A small test skill.\n---\n'
   );
   await fs.writeFile(path.join(temp, 'reference.md'), 'x'.repeat(256));
 
