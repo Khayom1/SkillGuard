@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { readRegularFile } from './safe-fs.js';
 
 export const MAX_FILE_BYTES = 1024 * 1024;
 export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
@@ -113,19 +114,19 @@ export async function collectFiles(inputPaths, options = {}) {
   const files = [];
   for (const filePath of unique) {
     try {
-      const stat = await fs.stat(filePath);
-      if (stat.size > maxFileBytes) {
+      const result = await readRegularFile(filePath, { maxBytes: maxFileBytes });
+      if (result.oversized) {
         skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
         continue;
       }
-      const content = await fs.readFile(filePath, 'utf8');
-      if (content.includes('\u0000')) {
+      const content = result.bytes.toString('utf8');
+      if (content.includes('\\u0000')) {
         skipped.push({ file: filePath, reason: 'Binary or null-byte content was skipped.' });
         continue;
       }
       files.push({ filePath, content });
     } catch (error) {
-      skipped.push({ file: filePath, reason: `Cannot read file: ${error.message}` });
+      skipped.push({ file: filePath, reason: `Cannot safely read file: ${error.message}` });
     }
   }
 
