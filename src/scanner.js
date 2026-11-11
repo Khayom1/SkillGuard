@@ -180,6 +180,16 @@ function checkObfuscatedPayloads(text, file, findings) {
   }
 }
 
+function checkAutomaticHooks(text, file, findings) {
+  if (!/\.(?:json|ya?ml)$/i.test(file)) return;
+  if (!/\bhooks?\b/i.test(text)) return;
+  if (!/\b(?:SessionStart|SessionEnd|UserPromptSubmit|PreToolUse|PostToolUse|Stop|SubagentStop|Notification|PermissionRequest)\b/i.test(text)) return;
+  const match = /["']?(?:command|cmd|script)["']\s*:\s*["']([^"'\r\n]{1,500})["']/i.exec(text);
+  if (!match) return;
+  const line = text.slice(0, match.index).split('\n').length;
+  addFinding(findings, file, line, 'SG015', 'Agent lifecycle event is paired with an automatically invoked command. Review its timing, executable, arguments, and side effects.', text.split(/\r?\n/)[line - 1] ?? '');
+}
+
 function checkLines(text, file, findings) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
@@ -215,12 +225,19 @@ export function analyzeFile({ filePath, content }) {
   checkLines(text, file, findings);
   checkPrompt(text, file, findings);
   checkObfuscatedPayloads(text, file, findings);
+  checkAutomaticHooks(text, file, findings);
 
   if (path.basename(file).toLowerCase() === 'skill.md') {
     const parsed = parseFrontmatter(text);
     if (!parsed.valid) {
       for (const error of parsed.errors) addFinding(findings, file, 1, 'SG002', error, text.split(/\r?\n/)[0] ?? '');
     } else {
+      const allowedTools = parsed.fields['allowed-tools'] ?? '';
+      if (/(?:^|[\\s,])(?:bash|shell|terminal|exec|command)(?:$|[\\s,(])/i.test(allowedTools)) {
+        const lines = text.split(/\\r?\\n/);
+        const line = Math.max(1, lines.findIndex((item) => /^\\s*allowed-tools\\s*:/i.test(item)) + 1);
+        addFinding(findings, file, line, 'SG014', 'The skill pre-authorizes a shell or command execution tool. Confirm that this permission is necessary and narrowly scoped.', lines[line - 1] ?? '');
+      }
       const parentName = path.basename(path.dirname(file));
       if (parentName && parentName !== '.' && parentName !== path.parse(parentName).root && parsed.fields.name !== parentName) {
         addFinding(findings, file, 2, 'SG002', `Skill name "${parsed.fields.name}" does not match parent folder "${parentName}".`, `name: ${parsed.fields.name}`);
