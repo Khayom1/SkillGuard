@@ -2,7 +2,7 @@
 
 SkillGuard keeps its default analysis pipeline small, deterministic, and offline.
 
-\`\`\`text
+```text
 CLI
  ├─ argument validation and exit policy
  ├─ file discovery with explicit resource limits
@@ -19,20 +19,20 @@ CLI
  └─ integrity commands
      ├─ SHA-256 lock creation
      └─ changed / added / missing comparison
-\`\`\`
+```
 
 ## Main modules
 
 | Module | Responsibility |
 | --- | --- |
-| \`src/cli.js\` | CLI parsing, command orchestration, thresholds, and incomplete-scan exit behavior |
-| \`src/files.js\` | Bounded directory discovery and supported text-file collection |
-| \`src/safe-fs.js\` | File-descriptor-based reads with symlink and mutation checks |
-| \`src/frontmatter.js\` | Lightweight required-field checks for Agent Skills metadata; not a full YAML parser |
-| \`src/scanner.js\` | Stateless content analysis and report aggregation |
-| \`src/rules.js\` | Stable rule IDs, severity, descriptions, and score weights |
-| \`src/reporters.js\` | Human-readable, JSON, and SARIF serialization |
-| \`src/integrity.js\` | SHA-256 integrity locks and verification |
+| `src/cli.js` | CLI parsing, command orchestration, thresholds, and incomplete-scan exit behavior |
+| `src/files.js` | Bounded directory discovery and supported text-file collection |
+| `src/safe-fs.js` | File-descriptor-based reads with symlink and mutation checks |
+| `src/frontmatter.js` | Lightweight required-field checks for Agent Skills metadata; not a full YAML parser |
+| `src/scanner.js` | Stateless content analysis and report aggregation |
+| `src/rules.js` | Stable rule IDs, severity, descriptions, and score weights |
+| `src/reporters.js` | Human-readable, JSON, and SARIF serialization |
+| `src/integrity.js` | SHA-256 integrity locks and verification |
 
 ## Design constraints
 
