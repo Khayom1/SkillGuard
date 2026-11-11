@@ -64,6 +64,7 @@ No API key. No runtime dependencies. No network access required for scanning. An
 | Secret exposure | Common GitHub, AWS, Slack, API-key patterns, and private-key blocks |
 | Hidden content | Zero-width, bidirectional, and unusual control characters |
 | Dangerous execution | `curl | bash`, encoded payload execution, destructive disk commands |
+| Encoded payloads | Bounded inspection of Base64, UTF-16LE PowerShell, percent-encoded, and escaped strings for recognizable high-risk behavior |
 | Persistence | Cron jobs, startup folders, launch agents, services, autorun keys |
 | Sensitive access | `.env`, `.ssh`, `.aws`, private key paths |
 | Permissions | Recursive world-writable permissions and broad privilege requests |
@@ -138,9 +139,12 @@ Commit the lock file next to the skill or store it in your release process. Re-r
 | `--fail-on LEVEL` | `high` | Exit with code 1 at or above `critical`, `high`, `medium`, or `low`; use `none` to never fail on findings |
 | `--max-files N` | `5000` | Limit the number of inspected files |
 | `--max-file-bytes N` | `1048576` | Skip files larger than the limit |
+| `--max-directories N` | `10000` | Limit directories visited |
+| `--max-depth N` | `40` | Limit directory traversal depth |
+| `--allow-skipped` | off | Explicitly allow a successful exit when some discovered items were skipped |
 | `--no-color` | off | Disable terminal colors |
 
-Exit codes: `0` clean or below threshold, `1` finding at/above threshold, `2` invalid arguments or scan/report error.
+Exit codes: `0` complete scan below the selected threshold, `1` finding at/above threshold, `2` invalid arguments, scan/report error, or incomplete scan. By default, any skipped item makes the scan incomplete and exits with `2`. Use `--allow-skipped` only after reviewing the omitted items; the report remains marked incomplete.
 
 ## Development
 
@@ -148,6 +152,7 @@ Exit codes: `0` clean or below threshold, `1` finding at/above threshold, `2` in
 git clone https://github.com/Khayom1/SkillGuard.git
 cd SkillGuard
 npm run verify
+npm run benchmark
 node src/cli.js examples/safe-skill --format json --fail-on none
 
 # Inspect an intentionally unsafe, inert fixture
@@ -160,7 +165,7 @@ The `examples/risky-skill` fixture is deliberately unsafe text for scanner demon
 - Zero runtime dependencies
 - Tests use the built-in Node test runner
 
-Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). Release process: see [docs/release.md](docs/release.md).
+Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). Read the [threat model](docs/THREAT_MODEL.md), [architecture](docs/architecture.md), and [benchmark methodology](docs/benchmark.md). Release process: see [docs/release.md](docs/release.md).
 
 ## Design principles
 
