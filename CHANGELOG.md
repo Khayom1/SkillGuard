@@ -12,7 +12,7 @@
 - Declare the package author and add pre-publish test and syntax checks.
 
 
-## 0.1.0 — 2026-11-11
+## 0.1.0 — planned
 
 - Initial public MVP.
 - Offline scanning of Agent Skills files and bundled text-based scripts.
