@@ -103,8 +103,14 @@ async function runVerify(options) {
   if (!(await fs.stat(root)).isDirectory()) throw new Error('The verify command expects a skill directory.');
   const lockPath = path.resolve(options.lock ?? path.join(root, '.skillguard.lock.json'));
   let lock;
-  try { lock = JSON.parse(await fs.readFile(lockPath, 'utf8')); }
-  catch (error) { process.stderr.write(`SkillGuard: cannot read lock file ${lockPath}: ${error.message}\n`); return 2; }
+  try {
+    const lockRead = await readRegularFile(lockPath, { maxBytes: 16 * 1024 * 1024 });
+    if (lockRead.oversized) throw new Error('Lock file exceeds the 16 MiB safety limit.');
+    lock = JSON.parse(lockRead.bytes.toString('utf8'));
+  } catch (error) {
+    process.stderr.write(`SkillGuard: cannot safely read lock file ${lockPath}: ${error.message}\n`);
+    return 2;
+  }
   let result;
   try { result = await verifyIntegrityLock(root, lock, { maxFiles: options.maxFiles, exclude: [lockPath] }); }
   catch (error) { process.stderr.write(`SkillGuard: ${error.message}\n`); return 2; }
