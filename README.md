@@ -67,7 +67,8 @@ No API key. No runtime dependencies. No network access required for scanning. An
 | Encoded payloads | Bounded inspection of Base64, UTF-16LE PowerShell, percent-encoded, and escaped strings for recognizable high-risk behavior |
 | Persistence | Cron jobs, startup folders, launch agents, services, autorun keys |
 | Sensitive access | `.env`, `.ssh`, `.aws`, private key paths |
-| Permissions | Recursive world-writable permissions and broad privilege requests |
+| Permissions | Recursive world-writable permissions, broad privilege requests, and pre-authorized shell tools |
+| Agent automation | Recognized lifecycle hooks that pair agent events with automatically invoked commands |
 | Skill format | Required `name` and `description`, name/description length and naming constraints |
 
 Full rule list: [docs/rules.md](docs/rules.md).
