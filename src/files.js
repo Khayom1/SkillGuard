@@ -5,14 +5,6 @@ import { readRegularFile } from './safe-fs.js';
 export const MAX_FILE_BYTES = 1024 * 1024;
 export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
 const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.jsonc', '.json5', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env', '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.scala', '.lua', '.r', '.ex', '.exs', '.swift', '.dart', '.c', '.h', '.cc', '.cpp', '.cs', '.sql', '.html', '.xml', '.svg', '.css', '.scss', '.less', '.ipynb']);
-
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { readRegularFile } from './safe-fs.js';
-
-export const MAX_FILE_BYTES = 1024 * 1024;
-export const SKIP_DIRS = new Set(['.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.next', '.cache']);
-const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '.json', '.jsonc', '.json5', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env', '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rb', '.pl', '.php', '.go', '.rs', '.java', '.kt', '.scala', '.lua', '.r', '.ex', '.exs', '.swift', '.dart', '.c', '.h', '.cc', '.cpp', '.cs', '.sql', '.html', '.xml', '.svg', '.css', '.scss', '.less', '.ipynb']);
 const TEXT_FILENAMES = new Set([
   '.env', '.npmrc', '.pypirc', '.netrc', '.bashrc', '.zshrc', '.profile',
   '.gitignore', '.gitmodules', '.dockerignore', 'dockerfile', 'containerfile',
