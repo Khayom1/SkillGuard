@@ -155,7 +155,7 @@ node src/cli.js examples/safe-skill --format json --fail-on none
 node src/cli.js examples/risky-skill --format text --fail-on none
 ```
 
-The `examples/risky-skill` fixture is deliberately unsafe text for scanner demonstrations. Its shell example is only a comment and must never be executed.
+The `examples/risky-skill` fixture is deliberately unsafe text for scanner demonstrations. Its shell example is inside an `if false` guard and will not execute; it is included only to demonstrate detection.
 
 - Node.js 18+
 - Zero runtime dependencies

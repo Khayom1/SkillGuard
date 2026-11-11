@@ -8,6 +8,7 @@
 - Add regression coverage for repeated secrets and cross-rule snippet redaction.
 - Enforce the configured file limit across multiple explicit file inputs.
 - Add an npm Trusted Publishing workflow and release checklist.
+- Add an inert risky-skill fixture and an end-to-end CLI detection test.
 - Declare the package author and add pre-publish test and syntax checks.
 
 
