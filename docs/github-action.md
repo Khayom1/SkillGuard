@@ -40,4 +40,4 @@ steps:
       upload-sarif: 'true'
 ```
 
-For a release workflow, replace `@main` with a version tag such as `@v0.1.0` after that tag exists. Review the generated SARIF and repository permissions before enabling upload.
+For a release workflow, replace `@main` with a version tag such as `@v0.1.0` after that tag exists. For production supply-chain hardening, pin the action to the full 40-character commit SHA of the reviewed release rather than relying on a movable branch or tag. Review the generated SARIF and repository permissions before enabling upload.

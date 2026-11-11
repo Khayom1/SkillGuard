@@ -25,5 +25,10 @@ jobs:
       - run: npm run check
       - name: Verify npm package contents
         run: npm pack --dry-run
+      - name: Test composite GitHub Action
+        uses: ./
+        with:
+          path: ./examples/safe-skill
+          fail-on: none
       - name: Scan example skill
         run: node src/cli.js examples/safe-skill --format json --fail-on none
