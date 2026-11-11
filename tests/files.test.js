@@ -27,8 +27,8 @@ test('reports skill directories omitted after the file limit is reached', async 
   const second = path.join(root, 'beta');
   await fs.mkdir(first);
   await fs.mkdir(second);
-  await fs.writeFile(path.join(first, 'SKILL.md'), '---\\nname: alpha\\ndescription: first skill\\n---\\n');
-  await fs.writeFile(path.join(second, 'SKILL.md'), '---\\nname: beta\\ndescription: second skill\\n---\\n');
+  await fs.writeFile(path.join(first, 'SKILL.md'), ['---', 'name: alpha', 'description: first skill', '---', ''].join('\\n'));
+  await fs.writeFile(path.join(second, 'SKILL.md'), ['---', 'name: beta', 'description: second skill', '---', ''].join('\\n'));
 
   const result = await collectFiles([root], { maxFiles: 1 });
   assert.equal(result.files.length, 1);
