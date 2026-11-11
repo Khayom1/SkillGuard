@@ -156,7 +156,7 @@ node src/cli.js examples/safe-skill --format json --fail-on none
 - Zero runtime dependencies
 - Tests use the built-in Node test runner
 
-Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md).
+Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). Release process: see [docs/release.md](docs/release.md).
 
 ## Design principles
 
