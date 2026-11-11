@@ -8,7 +8,7 @@ const LOCK_VERSION = 1;
 const DEFAULT_MAX_TOTAL_BYTES = 256 * 1024 * 1024;
 
 export async function createIntegrityLock(rootPath, options = {}) {
-  const { root, files, skipped } = await collectBundlePaths(rootPath, options);
+  const { root, boundaryRoot, files, skipped } = await collectBundlePaths(rootPath, options);
   const excluded = new Set((options.exclude ?? []).map((item) => path.resolve(item)));
   const entries = [];
   const maxTotalBytes = options.maxTotalBytes ?? DEFAULT_MAX_TOTAL_BYTES;
@@ -19,7 +19,7 @@ export async function createIntegrityLock(rootPath, options = {}) {
   for (const filePath of files) {
     if (excluded.has(path.resolve(filePath))) continue;
     const remainingBytes = maxTotalBytes - totalBytes;
-    const read = await readRegularFile(filePath, { maxBytes: Math.min(maxFileBytes, remainingBytes) });
+    const read = await readRegularFile(filePath, { maxBytes: Math.min(maxFileBytes, remainingBytes), allowedRoot: boundaryRoot });
     if (read.oversized) {
       if (read.stat.size > maxFileBytes) {
         skipped.push({ file: filePath, reason: `File exceeds ${maxFileBytes} bytes.` });
