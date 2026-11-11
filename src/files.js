@@ -66,6 +66,10 @@ export async function collectFiles(inputPaths, options = {}) {
     }
     roots.push(absolute);
     if (stat.isFile()) {
+      if (found.length >= maxFiles) {
+        skipped.push({ file: input, reason: `File limit (${maxFiles}) reached.` });
+        continue;
+      }
       found.push(absolute);
       continue;
     }

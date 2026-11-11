@@ -21,7 +21,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/cli.js && node --check src/scanner.js && node --check src/files.js && node --check src/frontmatter.js && node --check src/reporters.js && node --check src/integrity.js && node --check tests/scanner.test.js && node --check tests/cli.test.js && node --check tests/integrity.test.js",
+    "check": "node --check src/cli.js && node --check src/scanner.js && node --check src/files.js && node --check src/frontmatter.js && node --check src/reporters.js && node --check src/integrity.js && node --check tests/scanner.test.js && node --check tests/cli.test.js && node --check tests/integrity.test.js && node --check tests/files.test.js",
     "prepublishOnly": "npm test && npm run check"
   },
   "keywords": [
