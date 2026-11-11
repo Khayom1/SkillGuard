@@ -18,7 +18,7 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG012 | Medium | Broad privilege or unsafe filesystem permission settings. |
 | SG013 | High | Base64, UTF-16LE PowerShell, percent-encoded, or escaped content decodes to a recognizable high-risk instruction or command. |
 | SG014 | Medium | Agent Skills frontmatter pre-authorizes shell, terminal, or command execution tools. Review whether the permission is required and narrowly scoped. |
-| SG015 | High | A recognized agent lifecycle hook is paired with a command/script setting that may run automatically. Review its trigger and side effects. |
+| SG015 | Medium | A recognized agent lifecycle hook is paired with a command/script setting that may run automatically. Review its trigger and side effects. |
 
 ## Scoring
 
