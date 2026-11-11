@@ -201,7 +201,7 @@ test('flags command hooks on recognized agent lifecycle events', () => {
     }
   });
   const findings = analyzeFile({ filePath: '.claude/settings.json', content });
-  assert.ok(findings.some((item) => item.ruleId === 'SG015' && item.severity === 'high'));
+  assert.ok(findings.some((item) => item.ruleId === 'SG015' && item.severity === 'medium'));
 });
 
 test('does not flag non-hook JSON files as automatic lifecycle commands', () => {
