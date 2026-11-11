@@ -43,6 +43,24 @@ test('detects sensitive key exposure but redacts the matched value', () => {
   assert.equal(hit.snippet.includes(token), false);
 });
 
+test('detects and redacts common ecosystem credential formats', () => {
+  const examples = [
+    ['Google API key', 'AIza' + 'A'.repeat(35)],
+    ['GitLab token', 'glpat-' + 'B'.repeat(24)],
+    ['npm token', 'npm_' + 'C'.repeat(36)],
+    ['Hugging Face token', 'hf_' + 'D'.repeat(35)],
+    ['Stripe secret', 'sk_live_' + 'E'.repeat(32)],
+    ['Telegram bot token', '123456789:' + 'F'.repeat(35)],
+    ['AWS secret assignment', 'aws_secret_access_key=' + 'G'.repeat(40)]
+  ];
+  for (const [label, token] of examples) {
+    const findings = analyzeFile({ filePath: 'demo-skill/credentials.txt', content: token });
+    const hit = findings.find((item) => item.ruleId === 'SG005');
+    assert.ok(hit, `Expected detection for ${label}`);
+    assert.equal(hit.snippet.includes(token), false, `Expected ${label} to be redacted`);
+  }
+});
+
 test('redacts every repeated secret value from finding snippets', () => {
   const token = 'ghp_' + 'A'.repeat(36);
   const secondToken = 'ghp_' + 'B'.repeat(36);

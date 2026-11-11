@@ -10,7 +10,14 @@ const SECRET_PATTERNS = [
   { regex: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/g, label: 'GitHub token' },
   { regex: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g, label: 'GitHub fine-grained token' },
   { regex: /\bsk-(?:proj-)?[A-Za-z0-9_-]{24,}\b/g, label: 'API-key-like token' },
-  { regex: /\b(?:xox[baprs]-)[A-Za-z0-9-]{10,}\b/g, label: 'Slack token' }
+  { regex: /\b(?:xox[baprs]-)[A-Za-z0-9-]{10,}\b/g, label: 'Slack token' },
+  { regex: /\bAIza[0-9A-Za-z_-]{35}\b/g, label: 'Google API key' },
+  { regex: /\bglpat-[A-Za-z0-9_-]{20,}\b/g, label: 'GitLab personal access token' },
+  { regex: /\bnpm_[A-Za-z0-9]{36}\b/g, label: 'npm access token' },
+  { regex: /\bhf_[A-Za-z0-9]{30,}\b/g, label: 'Hugging Face token' },
+  { regex: /\bsk_live_[A-Za-z0-9]{24,}\b/g, label: 'Stripe live secret key' },
+  { regex: /\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, label: 'Telegram bot token' },
+  { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' }
 ];
 
 function addFinding(findings, file, line, ruleId, message, snippet = '', extra = {}) {

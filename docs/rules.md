@@ -8,7 +8,7 @@ SkillGuard uses transparent pattern-based rules. Every alert includes a rule ID,
 | SG002 | Medium | Missing or invalid required Agent Skills frontmatter fields. |
 | SG003 | High | Recognizable attempts to override prior, system, or developer instructions. |
 | SG004 | High | Requests to reveal private prompts, tokens, credentials, or environment secrets. |
-| SG005 | Critical | Common hard-coded API tokens, cloud keys, and private-key blocks. |
+| SG005 | Critical | Common GitHub, AWS, Google, GitLab, npm, Hugging Face, Stripe, Telegram, Slack, and private-key credential patterns. |
 | SG006 | Critical | Remote download content piped directly into a shell or interpreter. |
 | SG007 | Critical | Recognizable destructive disk or recursive-delete commands. |
 | SG008 | High | Startup, service, scheduled-task, or autorun persistence changes. |
