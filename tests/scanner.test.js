@@ -43,6 +43,20 @@ test('detects sensitive key exposure but redacts the matched value', () => {
   assert.equal(hit.snippet.includes(token), false);
 });
 
+test('redacts every repeated secret value from finding snippets', () => {
+  const token = 'ghp_' + 'A'.repeat(36);
+  const secondToken = 'ghp_' + 'B'.repeat(36);
+  const content = `${validSkill}\nFirst ${token} then ${token} and finally ${secondToken}`;
+  const findings = analyzeFile({ filePath: 'demo-skill/SKILL.md', content });
+  const secretFindings = findings.filter((item) => item.ruleId === 'SG005');
+  assert.equal(secretFindings.length, 3);
+  for (const finding of secretFindings) {
+    assert.equal(finding.snippet.includes(token), false);
+    assert.equal(finding.snippet.includes(secondToken), false);
+    assert.equal((finding.snippet.match(/\[REDACTED\]/g) ?? []).length, 3);
+  }
+});
+
 test('detects hidden bidirectional controls', () => {
   const findings = analyzeFile({ filePath: 'demo-skill/SKILL.md', content: `${validSkill}\nSafe text \u202Ehidden` });
   assert.ok(findings.some((item) => item.ruleId === 'SG001'));

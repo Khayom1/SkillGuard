@@ -42,16 +42,26 @@ function checkUnicode(text, file, findings) {
   });
 }
 
+function redactSecretValues(line) {
+  let safeLine = line;
+  for (const { regex } of SECRET_PATTERNS) {
+    const flags = regex.flags.includes('g') ? regex.flags : `${regex.flags}g`;
+    const redactor = new RegExp(regex.source, flags);
+    safeLine = safeLine.replace(redactor, '[REDACTED]');
+  }
+  return safeLine;
+}
+
 function checkSecrets(text, file, findings) {
+  const lines = text.split(/\r?\n/);
   for (const item of SECRET_PATTERNS) {
     item.regex.lastIndex = 0;
     let match;
     while ((match = item.regex.exec(text)) !== null) {
       const line = text.slice(0, match.index).split('\n').length;
-      const redacted = '[REDACTED]';
-      const sourceLine = text.split(/\r?\n/)[line - 1] ?? '';
-      const safeSnippet = sourceLine.replace(match[0], redacted);
-      addFinding(findings, file, line, 'SG005', `Possible ${item.label} found: ${redacted}.`, safeSnippet);
+      const sourceLine = lines[line - 1] ?? '';
+      const safeSnippet = redactSecretValues(sourceLine);
+      addFinding(findings, file, line, 'SG005', `Possible ${item.label} found: [REDACTED].`, safeSnippet);
       if (match[0].length === 0) item.regex.lastIndex += 1;
     }
   }
