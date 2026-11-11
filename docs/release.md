@@ -15,7 +15,7 @@ SkillGuard is prepared for npm publishing, but the package is not published yet.
 
 ## Publish a release
 
-1. Ensure `package.json`, `src/cli.js`, `src/scanner.js`, `src/integrity.js`, and `CITATION.cff` use the same version.
+1. Set the version in `package.json` and `CITATION.cff` to the same value. The CLI, scan reports, and integrity locks read the version from package metadata automatically.
 2. Update `CHANGELOG.md`.
 3. Create a GitHub Release with tag `v0.1.0` (the tag must match `package.json`).
 4. Publishing the release triggers `.github/workflows/publish.yml`.

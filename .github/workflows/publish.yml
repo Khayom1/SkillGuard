@@ -37,6 +37,11 @@ jobs:
             echo "Tag v$TAG_VERSION does not match package version $PACKAGE_VERSION."
             exit 1
           fi
+          CITATION_VERSION="$(sed -n 's/^version: "\(.*\)"/\1/p' CITATION.cff)"
+          if [ "$CITATION_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "CITATION.cff version $CITATION_VERSION does not match package version $PACKAGE_VERSION."
+            exit 1
+          fi
 
       - name: Publish with npm provenance
         run: npm publish --provenance --access public
