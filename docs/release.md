@@ -18,8 +18,9 @@ SkillGuard is prepared for npm publishing, but the package is not published yet.
 1. Set the version in `package.json` and `CITATION.cff` to the same value. The CLI, scan reports, and integrity locks read the version from package metadata automatically.
 2. Update `CHANGELOG.md`.
 3. Create a GitHub Release with tag `v0.1.0` (the tag must match `package.json`).
-4. Publishing the release triggers `.github/workflows/publish.yml`.
-5. The workflow runs the package's `prepublishOnly` script, which executes `npm test` and `npm run check`, then publishes with npm provenance.
+4. Run `npm run verify` locally on the release commit. This executes the test suite, syntax checks, synthetic benchmark, and package dry run.
+5. Publishing the release triggers `.github/workflows/publish.yml`.
+6. The workflow runs the package's `prepublishOnly` script, which executes `npm test`, `npm run check`, and `npm run benchmark`, then publishes with npm provenance.
 
 ## Important
 
