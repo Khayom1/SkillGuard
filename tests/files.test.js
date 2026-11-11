@@ -157,3 +157,23 @@ test('reports unsupported binary assets instead of silently claiming full text c
   assert.equal(result.files.length, 1);
   assert.ok(result.skipped.some((item) => item.file.endsWith('diagram.png') && /unsupported file type/i.test(item.reason)));
 });
+
+test('safe file reads refuse canonical paths outside the selected root', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-boundary-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-outside-'));
+  t.after(() => fs.rm(outside, { recursive: true, force: true }));
+  const file = path.join(outside, 'secret.md');
+  await fs.writeFile(file, 'outside content');
+  await assert.rejects(() => readRegularFile(file, { allowedRoot: root }), /outside the scan root/i);
+});
+
+test('reports dependency and build directories excluded by the text scan policy', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-excluded-dir-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await fs.writeFile(path.join(root, 'SKILL.md'), '---\nname: sample-skill\ndescription: Example skill.\n---\n');
+  await fs.mkdir(path.join(root, 'node_modules', 'example'), { recursive: true });
+  await fs.writeFile(path.join(root, 'node_modules', 'example', 'index.js'), 'eval(input);');
+  const result = await collectFiles([root]);
+  assert.ok(result.skipped.some((item) => item.file.endsWith('node_modules') && /excluded by scan policy/i.test(item.reason)));
+});
