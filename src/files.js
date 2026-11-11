@@ -124,7 +124,11 @@ export async function collectFiles(inputPaths, options = {}) {
         skipped.push({ file: input, reason: `File limit (${maxFiles}) reached.` });
         continue;
       }
-      found.push(absolute);
+      if (path.basename(absolute).toLowerCase() === 'skill.md' || TEXT_EXTENSIONS.has(path.extname(absolute).toLowerCase())) {
+        found.push(absolute);
+      } else {
+        skipped.push({ file: absolute, reason: 'Unsupported file type; text analysis did not inspect this file.' });
+      }
       continue;
     }
     if (!stat.isDirectory()) continue;
