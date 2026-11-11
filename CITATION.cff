@@ -4,6 +4,6 @@ title: "SkillGuard: Security auditing and integrity verification for AI agent sk
 authors:
   - family-names: Abdurahmonov
     given-names: Khayom
-version: 0.1.0
+version: 0.2.0
 license: MIT
 repository-code: "https://github.com/Khayom1/SkillGuard"
