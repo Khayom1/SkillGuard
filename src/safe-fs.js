@@ -4,7 +4,7 @@ import { constants } from 'node:fs';
 
 function isWithinDirectory(root, target) {
   const relative = path.relative(root, target);
-  return relative === '' || (relative !== '..' && !relative.startsWith(\`..\${path.sep}\`) && !path.isAbsolute(relative));
+  return relative === '' || (relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative));
 }
 
 function publicStat(stat) {
