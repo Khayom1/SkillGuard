@@ -165,7 +165,7 @@ The `examples/risky-skill` fixture is deliberately unsafe text for scanner demon
 - Zero runtime dependencies
 - Tests use the built-in Node test runner
 
-Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). Read the [threat model](docs/THREAT_MODEL.md), [architecture](docs/architecture.md), [benchmark methodology](docs/benchmark.md), and [project roadmap](docs/ROADMAP.md). Release process: see [docs/release.md](docs/release.md).
+Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). Read the [threat model](docs/THREAT_MODEL.md), [architecture](docs/architecture.md), [benchmark methodology](docs/benchmark.md), [project roadmap](docs/ROADMAP.md), and [competitive landscape](docs/competitive-landscape.md). Release process: see [docs/release.md](docs/release.md).
 
 ## Design principles
 
