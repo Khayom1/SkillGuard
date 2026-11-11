@@ -83,3 +83,18 @@ test('fails closed when a scan skips files unless explicitly allowed', async (t)
   const permissiveReport = JSON.parse(permissive.stdout);
   assert.equal(permissiveReport.summary.complete, false);
 });
+
+test('CLI refuses symbolic-link integrity lock inputs', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'skillguard-lock-link-'));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const skill = path.join(temp, 'skill');
+  await fs.mkdir(skill);
+  await fs.writeFile(path.join(skill, 'SKILL.md'), '---\nname: demo-skill\ndescription: Demo skill.\n---\n');
+  const externalLock = path.join(temp, 'external-lock.json');
+  await fs.writeFile(externalLock, JSON.stringify({ schemaVersion: 1, files: [] }));
+  const linkedLock = path.join(temp, 'linked-lock.json');
+  await fs.symlink(externalLock, linkedLock);
+  const result = run(['verify', skill, '--lock', linkedLock]);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /symbolic link/i);
+});
