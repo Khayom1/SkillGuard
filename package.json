@@ -1,7 +1,7 @@
 {
   "name": "skillguard-ai",
-  "version": "0.1.0",
-  "description": "Offline security auditing for AI agent skills and their bundled scripts.",
+  "version": "0.2.0",
+  "description": "Offline security scanner for AI agent skills. Detects prompt injection, secrets, dangerous commands, hidden Unicode and supply-chain risks before an agent installs or runs a skill.",
   "type": "module",
   "engines": {
     "node": ">=18"
@@ -29,15 +29,22 @@
   "keywords": [
     "ai-agents",
     "agent-skills",
-    "security",
+    "skill-security",
     "prompt-injection",
     "static-analysis",
+    "supply-chain",
+    "security-scanner",
     "sarif",
-    "github-action"
+    "github-action",
+    "claude",
+    "cursor",
+    "mcp",
+    "offline",
+    "zero-dependencies"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Khayom1/SkillGuard.git"
+    "url": "git+https://github.com/Khayom1/SkillGuard.git"
   },
   "bugs": {
     "url": "https://github.com/Khayom1/SkillGuard/issues"
@@ -50,6 +57,7 @@
     "README.md",
     "LICENSE",
     "docs/",
-    "action.yml"
+    "action.yml",
+    "CHANGELOG.md"
   ]
 }

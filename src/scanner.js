@@ -21,7 +21,9 @@ const SECRET_PATTERNS = [
   { regex: /\bdckr_pat_[A-Za-z0-9_-]{20,}\b/g, label: 'Docker Hub personal access token' },
   { regex: /\bsk_live_[A-Za-z0-9]{24,}\b/g, label: 'Stripe live secret key' },
   { regex: /\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, label: 'Telegram bot token' },
-  { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' }
+  { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' },
+  { regex: /\bxai-[A-Za-z0-9_-]{20,}\b/g, label: 'xAI API key' },
+  { regex: /\bBearer\s+[A-Za-z0-9._\-]{30,}\b/g, label: 'Bearer token' }
 ];
 
 function sanitizeSnippet(value) {
@@ -89,11 +91,13 @@ function checkSecrets(text, file, findings) {
 const LINE_RULES = [
   ['SG003', /\b(?:ignore|disregard|forget|override|bypass)\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above|system|developer)\s+(?:instructions?|messages?|rules?|prompts?)\b/i, 'Attempts to override earlier or higher-priority instructions.'],
   ['SG003', /\b(?:ignore|disregard)\s+(?:all\s+)?(?:safety|security)\s+(?:rules|policies|filters|checks)\b/i, 'Attempts to bypass safety or security rules.'],
+  ['SG003', /\b(?:you are now|from now on you are)\s+(?:in\s+)?(?:DAN|developer|unrestricted|jailbreak)\s+mode\b/i, 'Jailbreak-style role override detected.'],
   ['SG004', /\b(?:reveal|print|dump|exfiltrate|leak|show|output)\s+(?:the\s+)?(?:full\s+)?(?:system|developer)\s+prompt\b/i, 'Requests disclosure of private system or developer instructions.'],
   ['SG004', /\b(?:print|dump|send|reveal|upload|expose)\s+(?:(?:all|your|the)\s+)?(?:environment\s+variables|secrets|api[ -]keys?|access tokens?|credentials|private keys)\b/i, 'Requests disclosure or transfer of credentials or environment secrets.'],
   ['SG003', /\b(?:do not|never)\s+(?:tell|inform|notify|warn)\s+the user\b/i, 'Instructs the agent to conceal an action or finding from the user.'],
   ['SG006', /\b(?:curl|wget)\b[^\n|;]*\|\s*(?:sudo\s+)?(?:sh|bash|zsh)\b/i, 'Downloads remote content and immediately pipes it to a shell.'],
   ['SG006', /\b(?:curl|wget)\b[^\n;]*(?:\n|;)[^\n;]*\b(?:bash|sh|zsh)\b/i, 'Download and shell execution appear together in one command sequence.'],
+  ['SG006', /\b(?:iwr|invoke-webrequest)\b[^\n|;]*\|\s*(?:iex|invoke-expression)\b/i, 'PowerShell download is piped directly into Invoke-Expression.'],
   ['SG007', /\brm\s+-[a-z]*r[a-z]*f[a-z]*\s+(?:\/\s*(?:$|#)|~\/?(?:\s|$)|\$HOME\/?(?:\s|$))/i, 'Potentially destructive recursive deletion of a root or home directory.'],
   ['SG007', /\b(?:mkfs(?:\.[a-z0-9]+)?|fdisk\s+-[wy]|dd\s+if=\/dev\/(?:zero|random)\s+of=\/dev\/)/i, 'Disk formatting or raw device overwrite command detected.'],
   ['SG007', /\bformat\s+[a-z]:\s*\/?\s*(?:\/q)?\b/i, 'Windows drive-formatting command detected.'],
@@ -105,7 +109,13 @@ const LINE_RULES = [
   ['SG011', /\b(?:printenv|env|set)\b[^\n|;]*(?:\||;)[^\n]*(?:curl|wget|nc\s|ncat|Invoke-WebRequest)\b/i, 'Environment variables may be piped or sent to a network command.'],
   ['SG011', /\b(?:cat|type|Get-Content)\b[^\n]*(?:\.env|id_rsa|\.ssh)[^\n]*(?:\||;)[^\n]*(?:curl|wget|nc\s|Invoke-WebRequest)\b/i, 'Sensitive file content may be sent to a network command.'],
   ['SG012', /\bchmod\s+-R\s+777\b/i, 'Recursive world-writable permissions are being set.'],
-  ['SG012', /\b(?:sudo\s+-i|sudo\s+su\b|--privileged\b|runAsNonRoot:\s*false)\b/i, 'Broad elevated privileges are requested or enabled.']
+  ['SG012', /\b(?:sudo\s+-i|sudo\s+su\b|--privileged\b|runAsNonRoot:\s*false)\b/i, 'Broad elevated privileges are requested or enabled.'],
+  ['SG016', /\b(?:nc|ncat|netcat)\s+-[elp]*[el][elp]*\b/i, 'Netcat listener pattern that can open a reverse or bind shell.'],
+  ['SG016', /\b(?:bash|sh)\s+-i\s+>&\s*\/dev\/tcp\//i, 'Bash reverse shell via /dev/tcp detected.'],
+  ['SG016', /\b(?:python|python3)\s+-c\s+['"][^'"]*(?:socket|connect|subprocess)\b/i, 'Python one-liner that may open a remote interactive shell.'],
+  ['SG017', /\bsubprocess\.(?:call|run|Popen)\s*\([^\n]*shell\s*=\s*True/i, 'Python subprocess invoked with shell=True (command injection risk).'],
+  ['SG017', /\b(?:eval|exec)\s*\(\s*(?:input|request|user|data|payload|cmd)\b/i, 'Dynamic eval/exec of attacker-controlled or user-supplied data.'],
+  ['SG017', /\b(?:Invoke-Expression|IEX)\s*\(/i, 'PowerShell Invoke-Expression of potentially untrusted content.']
 ];
 
 const DECODED_BEHAVIOR_PATTERNS = [
@@ -114,7 +124,9 @@ const DECODED_BEHAVIOR_PATTERNS = [
   /\b(?:invoke-webrequest|iwr)\b[\s\S]{0,160}\b(?:iex|invoke-expression)\b/i,
   /\b(?:process\.env|os\.environ|GetEnvironmentVariable)\b[\s\S]{0,160}(?:https?:\/\/|fetch\s*\(|requests?\.(?:post|put)|\bcurl\s)/i,
   /\b(?:rm\s+-[a-z]*r[a-z]*f|chmod\s+-R\s+777|mkfs(?:\.[a-z0-9]+)?|format\s+[a-z]:)/i,
-  /\b(?:base64|FromBase64String)\b[\s\S]{0,100}\b(?:eval|exec|iex|invoke-expression)\b/i
+  /\b(?:base64|FromBase64String)\b[\s\S]{0,100}\b(?:eval|exec|iex|invoke-expression)\b/i,
+  /\b(?:bash|sh)\s+-i\s+>&\s*\/dev\/tcp\//i,
+  /\bsubprocess\.(?:call|run|Popen)\s*\([^\n]*shell\s*=\s*True/i
 ];
 
 function looksLikeHighRiskDecodedText(value) {
