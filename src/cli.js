@@ -22,6 +22,8 @@ SCAN OPTIONS
   --fail-on <level>           Exit 1 at/above: critical|high|medium|low|none (default: high)
   --max-files <number>        Maximum files to inspect (default: 5000)
   --max-file-bytes <number>   Skip larger text files (default: 1048576)
+  --max-directories <number>  Maximum directories to visit (default: 10000)
+  --max-depth <number>        Maximum directory depth (default: 40)
 
 LOCK / VERIFY OPTIONS
   --output <file>             Lock output path (lock); report path (verify)
@@ -45,7 +47,7 @@ function parseArgs(argv) {
   const args = [...argv];
   let command = 'scan';
   if (['scan', 'lock', 'verify'].includes(args[0])) command = args.shift();
-  const result = { command, paths: [], format: 'text', output: null, lock: null, failOn: 'high', maxFiles: 5000, maxFileBytes: 1024 * 1024, color: process.stdout.isTTY === true, help: false, version: false };
+  const result = { command, paths: [], format: 'text', output: null, lock: null, failOn: 'high', maxFiles: 5000, maxFileBytes: 1024 * 1024, maxDirectories: 10000, maxDepth: 40, color: process.stdout.isTTY === true, help: false, version: false };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     const next = () => {
@@ -59,6 +61,8 @@ function parseArgs(argv) {
     else if (arg === '--fail-on') result.failOn = next();
     else if (arg === '--max-files') result.maxFiles = Number(next());
     else if (arg === '--max-file-bytes') result.maxFileBytes = Number(next());
+    else if (arg === '--max-directories') result.maxDirectories = Number(next());
+    else if (arg === '--max-depth') result.maxDepth = Number(next());
     else if (arg === '--no-color') result.color = false;
     else if (arg === '--help' || arg === '-h') result.help = true;
     else if (arg === '--version' || arg === '-v') result.version = true;
@@ -69,6 +73,8 @@ function parseArgs(argv) {
   if (!Object.hasOwn(SEVERITY_ORDER, result.failOn)) throw new Error(`Unsupported --fail-on level: ${result.failOn}`);
   if (!Number.isInteger(result.maxFiles) || result.maxFiles < 1) throw new Error('--max-files must be a positive integer.');
   if (!Number.isInteger(result.maxFileBytes) || result.maxFileBytes < 1) throw new Error('--max-file-bytes must be a positive integer.');
+  if (!Number.isInteger(result.maxDirectories) || result.maxDirectories < 1) throw new Error('--max-directories must be a positive integer.');
+  if (!Number.isInteger(result.maxDepth) || result.maxDepth < 0) throw new Error('--max-depth must be a non-negative integer.');
   if (result.command === 'verify' && result.format === 'sarif') throw new Error('SARIF format is available for scan reports only.');
   return result;
 }
