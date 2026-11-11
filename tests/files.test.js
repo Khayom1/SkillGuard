@@ -44,7 +44,7 @@ test('reports symbolic links discovered while locating nested skills', async (t)
   const outside = path.join(root, 'outside');
   await fs.mkdir(skills);
   await fs.mkdir(outside);
-  await fs.writeFile(path.join(outside, 'SKILL.md'), '---\\nname: outside\\ndescription: Outside skill.\\n---\\n');
+  await fs.writeFile(path.join(outside, 'SKILL.md'), '---\nname: outside\ndescription: Outside skill.\n---\n');
   await fs.symlink(outside, path.join(skills, 'linked-skill'), 'dir');
 
   const result = await collectFiles([skills]);
