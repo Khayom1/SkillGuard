@@ -58,13 +58,18 @@ export async function readRegularFile(filePath, options = {}) {
     }
 
     const after = await handle.stat();
+    const pathAfter = await fs.lstat(filePath);
     if (
       !after.isFile() ||
       after.dev !== opened.dev ||
       after.ino !== opened.ino ||
       after.size !== opened.size ||
       after.mtimeMs !== opened.mtimeMs ||
-      after.ctimeMs !== opened.ctimeMs
+      after.ctimeMs !== opened.ctimeMs ||
+      pathAfter.isSymbolicLink() ||
+      !pathAfter.isFile() ||
+      pathAfter.dev !== opened.dev ||
+      pathAfter.ino !== opened.ino
     ) {
       throw new Error('File changed while being read; retry the operation.');
     }
