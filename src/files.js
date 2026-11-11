@@ -97,7 +97,8 @@ export async function collectFiles(inputPaths, options = {}) {
       const skillDirectories = [];
       await findSkillDirectories(absolute, skillDirectories, skipped, { maxDirectories, maxDepth, visited: 0 });
       if (skillDirectories.length) {
-        for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
+        const walkLimits = { maxDirectories, maxDepth, visited: 0 };
+        for (const skillDirectory of skillDirectories) await walk(skillDirectory, found, skipped, maxFiles, 'text', walkLimits);
       } else {
         // Useful fallback for explicitly supplied folders that are not Agent Skills bundles.
         await walk(absolute, found, skipped, maxFiles, 'text', { maxDirectories, maxDepth, visited: 0 });
