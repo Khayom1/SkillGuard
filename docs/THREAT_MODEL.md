@@ -40,7 +40,9 @@ SkillGuard is a static analyzer, not a sandbox, antivirus engine, runtime monito
 - Decoding is bounded and read-only. Only selected common encodings and recognizable high-risk behaviors are inspected; arbitrary nested encodings, compression, custom encoders, and all script-language semantics are not covered.
 - The filesystem checks reduce common path-swap and symlink risks but do not make a scan safe against a fully hostile local process that can mutate parent directories concurrently. Scan untrusted bundles in an isolated environment with least privilege.
 - SkillGuard does not verify remote URL reputation, package provenance, dependency vulnerabilities, agent runtime permissions, or the behavior of an agent after the skill is loaded.
-- A file extension allowlist means unsupported file types may not be analyzed by the text scanner. Integrity locking covers regular files, including binary assets, but it does not determine whether those assets are safe.
+- A file extension allowlist means unsupported file types are not text-analyzed; they are surfaced as skipped items and make the default CLI exit incomplete. Image/audio/archive semantics are not decoded by the text scanner.
+- The text scanner intentionally excludes dependency, VCS, virtual-environment, and build/cache directories (for example `.git`, `node_modules`, `.venv`, `dist`, and `.cache`). Except for `.git`, excluded directories are listed as skipped. Scan an excluded directory explicitly when it is part of the artifact under review.
+- Integrity locking includes regular files under dependency/build directories, subject to file and total-size limits, but excludes `.git` metadata. It records bytes and modes; it does not determine whether any asset or dependency is safe.
 - A skipped item makes the report incomplete. Do not use \`--allow-skipped\` for release gates unless you have independently reviewed every omitted item.
 
 ## Recommended operating procedure
