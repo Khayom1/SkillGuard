@@ -6,12 +6,13 @@
 
 ### Security scanner for AI agent skills — not just a Markdown linter.
 
-**Inspect the entire skill bundle. Find risky instructions, secrets, hidden characters and dangerous execution chains — before an agent uses them.**
+**Inspect the entire skill bundle. Find risky instructions, secrets, hidden characters, reverse shells and dangerous execution chains — before an agent uses them.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-65d6b4?style=for-the-badge)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Zero dependencies](https://img.shields.io/badge/runtime%20dependencies-0-4f9bdb?style=for-the-badge)](package.json)
 [![CI](https://img.shields.io/github/actions/workflow/status/Khayom1/SkillGuard/ci.yml?branch=main&style=for-the-badge&label=CI)](.github/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge)](CHANGELOG.md)
 
 **Offline · Explainable · CI-ready · No API key · Never executes scanned scripts**
 
@@ -42,25 +43,27 @@ A dangerous command can hide in an installer. A prompt-injection instruction can
 
 ## Detection coverage
 
-SkillGuard currently includes 15 rule families.
+SkillGuard currently includes **17 rule families**.
 
 | Rule | Severity | Detection |
 |---|---|---|
 | SG001 | High | Zero-width, bidirectional and unexpected control characters |
 | SG002 | Medium | Missing or invalid Agent Skills frontmatter fields |
-| SG003 | High | Recognizable attempts to override system, developer or prior instructions |
-| SG004 | High | Requests to reveal private prompts, tokens, credentials or environment secrets |
-| SG005 | Critical | Common provider credentials, API tokens and private-key patterns |
-| SG006 | Critical | Remote download piped directly into a shell or interpreter |
-| SG007 | Critical | Recognizable destructive disk and recursive-delete commands |
+| SG003 | High | Instruction overrides and jailbreak-style role changes |
+| SG004 | High | Requests to reveal private prompts, tokens or environment secrets |
+| SG005 | Critical | Provider credentials, API tokens and private-key patterns |
+| SG006 | Critical | Remote download piped into a shell, interpreter or PowerShell IEX |
+| SG007 | Critical | Destructive disk and recursive-delete commands |
 | SG008 | High | Startup, service, scheduled-task and autorun persistence |
-| SG009 | High | References to common credential stores and private-key locations |
+| SG009 | High | References to credential stores and private-key locations |
 | SG010 | High | Encoded content passed to dynamic code execution |
-| SG011 | Critical | Patterns combining secret access with network transfer |
+| SG011 | Critical | Secret access combined with network transfer |
 | SG012 | Medium | Broad privilege requests and unsafe filesystem permissions |
-| SG013 | High | Selected encoded payloads that decode to recognizable risky behavior |
-| SG014 | Medium | Agent Skills frontmatter pre-authorizing shell or command tools |
-| SG015 | Medium | Agent lifecycle hooks paired with automatically invoked commands |
+| SG013 | High | Encoded payloads that decode to recognizable risky behavior |
+| SG014 | Medium | Frontmatter pre-authorizing shell or command tools |
+| SG015 | Medium | Agent lifecycle hooks paired with automatic commands |
+| SG016 | Critical | Reverse shells, netcat listeners, remote interactive access |
+| SG017 | High | `eval`/`exec`, Python `shell=True`, PowerShell `Invoke-Expression` |
 
 Full details and examples: [Detection rules](docs/rules.md).
 
@@ -108,7 +111,7 @@ skillguard verify ./my-skill
 
 No API key. No runtime dependencies. No network access required for scanning.
 
-**Package status:** an npm registry package is not published yet. The commands above install the current source from this repository.
+**Package status:** npm package `skillguard-ai` is prepared for publish (v0.2.0). Until the public registry release is live, install from this repository as shown above.
 
 ## Example output
 
@@ -237,7 +240,7 @@ Inspect the intentionally risky fixture:
 node src/cli.js examples/risky-skill --format text --fail-on none
 ```
 
-The risky fixture is inert demonstration content. Its shell example is inside an `if false` guard and is not executed by SkillGuard.
+The risky fixture is inert demonstration content. Dangerous patterns are guarded (`if false` / `if False`) and are never executed by SkillGuard.
 
 The project uses Node's built-in test runner and has zero runtime dependencies. Benchmark methodology and cases are documented in [docs/benchmark.md](docs/benchmark.md).
 
