@@ -9,7 +9,7 @@
 - Enforce canonical scan-root boundaries during directory traversal and file reads; surface unsupported files and excluded directories as incomplete coverage.
 - Include dependency/build contents in integrity manifests within configured limits while excluding Git metadata.
 - Make incomplete scans fail closed with exit code 2 unless the caller explicitly uses --allow-skipped; expose completeness in JSON and SARIF reports.
-- Add a synthetic offline benchmark with precision, recall, F1, and specificity metrics.
+- Add a synthetic offline benchmark with precision, recall, F1, and specificity metrics; make it part of the local verification and pre-publish gates.
 - Add the threat model, architecture guide, benchmark methodology, and regression coverage for the new behavior.
 
 - Redact every detected secret value from all finding snippets, including findings raised by other rules.
