@@ -21,7 +21,7 @@ const SECRET_PATTERNS = [
 ];
 
 function sanitizeSnippet(value) {
-  return String(value).replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060\\u2066-\\u2069\\uFEFF]/gu, (character) => {
+  return String(value).replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF]/gu, (character) => {
     const code = character.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
     return `[U+${code}]`;
   });
