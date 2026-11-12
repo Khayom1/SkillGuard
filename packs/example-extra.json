@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "example-extra",
+  "rules": [
+    {
+      "id": "PACK.CRYPTOMINER",
+      "name": "Cryptominer indicator",
+      "severity": "high",
+      "message": "Possible cryptominer or mining-pool reference.",
+      "pattern": "\\b(?:xmrig|stratum\\+tcp|mining\\.pool|hashrate)\\b",
+      "flags": "i"
+    },
+    {
+      "id": "PACK.TOR_EXFIL",
+      "name": "Tor onion endpoint",
+      "severity": "medium",
+      "message": "Onion service endpoint referenced.",
+      "pattern": "\\.onion\\b",
+      "flags": "i"
+    }
+  ]
+}
