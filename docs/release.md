@@ -1,8 +1,8 @@
 # Release and npm publishing
 
-SkillGuard is prepared for npm publishing under the package name `skillguard-ai`. The package is not yet published to the public registry.
+SkillGuard is prepared for npm publishing under the package name `skillguard-ai`. Current version: **0.3.0**.
 
-## Prerequisites before the first public release
+## Prerequisites before the first public npm publish
 
 1. Confirm that the npm package name `skillguard-ai` is available and controlled by the project maintainer. Package names are permanent once published.
 2. Create or sign in to the npm account that will own the package.
@@ -17,7 +17,7 @@ SkillGuard is prepared for npm publishing under the package name `skillguard-ai`
 
 1. Set the version in `package.json` and `CITATION.cff` to the **same** value. The CLI, scan reports, and integrity locks read the version from package metadata.
 2. Update `CHANGELOG.md` with user-visible changes.
-3. Create a GitHub Release whose tag matches the package version (example: tag `v0.2.0` for version `0.2.0`).
+3. Create a GitHub Release whose tag matches the package version (example: tag `v0.3.0` for version `0.3.0`).
 4. Run the full local verification suite on the release commit:
 
    ```bash
@@ -43,4 +43,10 @@ Before tagging:
 - [ ] `package.json` version
 - [ ] `CITATION.cff` version
 - [ ] `CHANGELOG.md` entry for the version
+- [ ] `SECURITY.md` supported versions updated
+- [ ] README version badge updated
 - [ ] Git tag `vX.Y.Z` matches the package version
+
+## Maintainer
+
+**Khayom Abdurahmonov** — [github.com/Khayom1](https://github.com/Khayom1)
