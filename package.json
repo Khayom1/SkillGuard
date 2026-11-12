@@ -1,7 +1,7 @@
 {
   "name": "skillguard-ai",
   "version": "0.2.0",
-  "description": "Offline security scanner for AI agent skills. Detects prompt injection, secrets, dangerous commands, hidden Unicode and supply-chain risks before an agent installs or runs a skill.",
+  "description": "Offline security scanner for AI agent skills. Detects prompt injection, secrets, reverse shells, destructive commands, hidden Unicode and supply-chain risks before an agent installs or runs a skill.",
   "type": "module",
   "engines": {
     "node": ">=18"
@@ -38,9 +38,11 @@
     "github-action",
     "claude",
     "cursor",
+    "codex",
     "mcp",
     "offline",
-    "zero-dependencies"
+    "zero-dependencies",
+    "integrity"
   ],
   "repository": {
     "type": "git",
@@ -56,8 +58,12 @@
     "benchmarks/cases.json",
     "README.md",
     "LICENSE",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
     "docs/",
-    "action.yml",
-    "CHANGELOG.md"
+    "action.yml"
   ]
 }
