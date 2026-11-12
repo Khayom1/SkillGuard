@@ -20,6 +20,8 @@ export function analyzeFile(input, options = {}) {
         ruleId: 'SG022',
         ruleName: rule.name,
         severity: rule.severity,
+        confidence: 'heuristic',
+        evidence: 'intra-file-taint',
         message: item.message,
         file: filePath,
         line: item.line,

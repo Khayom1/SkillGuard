@@ -27,42 +27,43 @@ The core differentiator is that a user can inspect an untrusted skill locally wi
 - [ ] Build a versioned, independently reviewed dataset of benign and malicious skills with source, license, and label provenance
 - [ ] Keep a holdout corpus that is never used to tune detection rules
 - [ ] Publish per-category recall, benign false-positive rate, severity calibration, coverage, and performance
-- [ ] Add multilingual prompt-injection tests and realistic lookalikes
-- [ ] Introduce baseline/fingerprint suppression with an auditable record of accepted findings
-- [ ] Add rule confidence/evidence fields without presenting heuristic scores as probabilities
+- [x] Add multilingual prompt-injection tests and realistic lookalikes
+- [x] Introduce baseline/fingerprint suppression with an auditable record of accepted findings
+- [x] Add rule confidence/evidence fields without presenting heuristic scores as probabilities
 
 ## Phase 2 — Deeper static analysis
 
 - [ ] Add optional AST analysis for JavaScript/TypeScript and Python
-- [ ] Track simple data flows from environment variables and credential files to network or process execution sinks
-- [ ] Analyze shell and PowerShell command chains across multiple lines and helper scripts
-- [ ] Parse MCP server configuration and tool permissions
+- [x] Track simple data flows from environment variables and credential files to network or process execution sinks (same file only; not a full AST)
+- [ ] Analyze shell and PowerShell command chains across helper scripts. Nearby-line chains (SG018) exist; cross-file analysis does not
+- [x] Parse MCP server configuration and tool permissions
 - [ ] Parse supported agent configuration formats with versioned schemas
 - [ ] Add optional YARA rule packs with rule provenance and compatibility checks
 - [ ] Keep syntax/semantic analyzers optional so the default lightweight scanner remains usable offline
 
 ## Phase 3 — Safe ingestion and supply-chain context
 
-- [ ] Add safe local ZIP ingestion with archive path traversal checks, member-count caps, compressed/uncompressed size caps, and symlink rejection
+- [x] Add safe local ZIP ingestion with archive path traversal checks, member-count caps, compressed/uncompressed size caps, and symlink rejection
 - [ ] Add Git repository ingestion pinned to an immutable commit SHA
 - [ ] Make URL ingestion opt-in, show what is downloaded, enforce size limits, and never execute fetched content
-- [ ] Record source URL/repository, immutable revision, content hashes, and scanner version in reports
+- [x] Record scanner version, local Git revision when present, and SHA-256 hashes of inspected text in reports. Remote URL ingestion is still not implemented
 - [ ] Add optional dependency/CVE metadata checks with a visible network-egress policy and offline fallback
 - [ ] Sign integrity manifests or support a documented signature workflow so a lock file itself can be authenticated
 
 ## Phase 4 — Install-time and developer integrations
 
-- [ ] Add a local pre-install command and pre-commit integration
-- [ ] Add editor diagnostics and readable review summaries
-- [ ] Add a local MCP server that exposes scan and verify operations without exposing a remote service
+- [x] Add a local pre-commit script for skill repositories (`scripts/pre-commit.sh`). A separate pre-install command is not shipped
+- [x] Add markdown review summaries (`--format markdown`)
+- [x] Add a local MCP server that exposes scan and verify operations without exposing a remote service
 - [ ] Add adapters for major agent ecosystems only after their formats and permission models are documented and tested
-- [ ] Provide examples for Claude Code, Codex, Gemini CLI, Cursor, and MCP configuration where supported
+- [x] Provide examples for Claude Code, Codex, and Cursor MCP configuration. Gemini CLI example is not included yet
 - [ ] Keep GitHub Action distribution separate from the offline CLI and expand it only after runner access and release tests are confirmed
 
 ## Phase 5 — Maintained ecosystem
 
-- [ ] Publish a detector rule authoring guide and a review process for external contributions
+- [x] Publish a detector rule authoring guide and a review process for external contributions
 - [ ] Add signed releases, provenance, SBOM, and reproducible release artifacts
+- The repository now includes an unsigned CycloneDX SBOM (`sbom.cdx.json`) and npm provenance is configured in the publish workflow. Signed releases and a full reproducible-build attestation are still open
 - [ ] Establish responsible vulnerability disclosure and a documented response process
 - [ ] Recruit independent security reviewers and ecosystem maintainers
 - [ ] Publish benchmark results and limitations for each release

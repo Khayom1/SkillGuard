@@ -27,8 +27,50 @@ export function formatText(report, options = {}) {
     for (const item of report.skipped.slice(0, 20)) lines.push(`  ${item.file}: ${item.reason}`);
     if (report.skipped.length > 20) lines.push(`  …and ${report.skipped.length - 20} more`);
   }
+  if (report.provenance?.git?.commit) {
+    lines.push(paint(`Local git ${report.provenance.git.commit.slice(0, 12)} · scanner ${report.provenance.scannerVersion}`, 'gray', color));
+  }
   lines.push('');
   lines.push(paint('Note: SkillGuard is rule-based static analysis, not proof that a skill is safe or malicious.', 'gray', color));
+  return lines.join('\n');
+}
+
+export function toMarkdown(report) {
+  const { summary } = report;
+  const lines = [];
+  lines.push('# SkillGuard security audit');
+  lines.push('');
+  lines.push(`- Score: **${summary.score}/100** (grade ${summary.grade})`);
+  lines.push(`- Files: ${summary.filesScanned}`);
+  lines.push(`- Findings: ${summary.findings} (critical ${summary.critical}, high ${summary.high}, medium ${summary.medium}, low ${summary.low})`);
+  lines.push(`- Skipped: ${summary.skipped} · ${summary.complete ? 'complete' : 'incomplete'}`);
+  if (summary.suppressed) lines.push(`- Suppressed by baseline: ${summary.suppressed}`);
+  if (report.provenance) {
+    lines.push(`- Scanner: ${report.provenance.scannerVersion}`);
+    lines.push(`- Scanned at: ${report.provenance.scannedAt}`);
+    if (report.provenance.git?.commit) lines.push(`- Local git: \`${report.provenance.git.commit}\`${report.provenance.git.ref ? ` (${report.provenance.git.ref})` : ''}`);
+  }
+  lines.push('');
+  if (!report.findings.length) lines.push('No findings matched SkillGuard rules.');
+  for (const item of report.findings) {
+    lines.push(`## ${item.severity.toUpperCase()} ${item.ruleId}`);
+    lines.push('');
+    lines.push(`- Location: \`${item.file}:${item.line}\``);
+    lines.push(`- Confidence: ${item.confidence ?? 'heuristic'} (${item.evidence ?? 'static-pattern'})`);
+    lines.push(`- ${item.message}`);
+    if (item.snippet) lines.push('');
+    if (item.snippet) lines.push('```');
+    if (item.snippet) lines.push(item.snippet);
+    if (item.snippet) lines.push('```');
+    lines.push('');
+  }
+  if (report.skipped?.length) {
+    lines.push('## Skipped');
+    lines.push('');
+    for (const item of report.skipped.slice(0, 20)) lines.push(`- \`${item.file}\`: ${item.reason}`);
+  }
+  lines.push('');
+  lines.push('> SkillGuard is heuristic static analysis. A clean report does not prove a skill is safe.');
   return lines.join('\n');
 }
 
@@ -54,7 +96,8 @@ export function toSarif(report) {
           artifactLocation: { uri: finding.file.replaceAll('\\', '/') },
           region: { startLine: Math.max(1, finding.line) }
         } }],
-        partialFingerprints: { primaryLocationLineHash: `${finding.ruleId}:${finding.file}:${finding.line}` }
+        partialFingerprints: { primaryLocationLineHash: `${finding.ruleId}:${finding.file}:${finding.line}` },
+        properties: { confidence: finding.confidence ?? 'heuristic', evidence: finding.evidence ?? 'static-pattern' }
       })),
       properties: { score: report.summary.score, filesScanned: report.summary.filesScanned, scanComplete: report.summary.complete, skipped: report.summary.skipped }
     }]

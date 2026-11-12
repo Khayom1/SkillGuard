@@ -5,13 +5,14 @@ import { fileURLToPath } from 'node:url';
 import { VERSION } from './version.js';
 import { analyzeFile, createReport } from './analyze.js';
 import { collectFiles } from './files.js';
-import { formatText, toSarif } from './reporters.js';
+import { formatText, toMarkdown, toSarif } from './reporters.js';
 import { SEVERITY_ORDER } from './rules.js';
 import { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
 import { readRegularFile } from './safe-fs.js';
 import { readZipTextMembers } from './zip.js';
 import { applyBaseline, createBaselineDocument, loadBaseline, writeBaseline } from './baseline.js';
 import { loadRulePack } from './packs.js';
+import { buildProvenance } from './provenance.js';
 
 const HELP = `SkillGuard ${VERSION} — security auditing and integrity checks for AI agent skills
 
@@ -23,7 +24,7 @@ USAGE
   skillguard mcp
 
 SCAN OPTIONS
-  --format <text|json|sarif>  Output format (default: text)
+  --format <text|json|sarif|markdown>  Output format (default: text)
   --output <file>             Write the report to a file instead of stdout
   --fail-on <level>           Exit 1 at/above: critical|high|medium|low|none (default: high)
   --max-files <number>        Maximum files to inspect (default: 5000)
@@ -112,7 +113,7 @@ function parseArgs(argv) {
     else if (arg.startsWith('-')) throw new Error(`Unknown option: ${arg}`);
     else result.paths.push(arg);
   }
-  if (!['text', 'json', 'sarif'].includes(result.format)) throw new Error(`Unsupported format: ${result.format}`);
+  if (!['text', 'json', 'sarif', 'markdown'].includes(result.format)) throw new Error(`Unsupported format: ${result.format}`);
   if (!Object.hasOwn(SEVERITY_ORDER, result.failOn)) throw new Error(`Unsupported --fail-on level: ${result.failOn}`);
   if (!Number.isInteger(result.maxFiles) || result.maxFiles < 1) throw new Error('--max-files must be a positive integer.');
   if (!Number.isInteger(result.maxFileBytes) || result.maxFileBytes < 1) throw new Error('--max-file-bytes must be a positive integer.');
@@ -159,7 +160,7 @@ async function loadPacks(packPaths) {
 
 async function runScan(options, { writeBaselineFromFindings = false } = {}) {
   const packs = await loadPacks(options.packs);
-  const { files, skipped } = await collectScanInputs(options.paths, options);
+  const { files, skipped, roots } = await collectScanInputs(options.paths, options);
   let findings = files.flatMap((file) => analyzeFile({
     filePath: path.relative(process.cwd(), file.filePath),
     content: file.content
@@ -191,11 +192,14 @@ async function runScan(options, { writeBaselineFromFindings = false } = {}) {
     report.summary.suppressed = suppressed.length;
     report.suppressed = suppressed;
   }
+  report.provenance = await buildProvenance({ roots, files });
   const rendered = options.format === 'json'
     ? JSON.stringify(report, null, 2)
     : options.format === 'sarif'
       ? JSON.stringify(toSarif(report), null, 2)
-      : formatText(report, { color: options.color });
+      : options.format === 'markdown'
+        ? toMarkdown(report)
+        : formatText(report, { color: options.color });
   await writeOutput(options.output, rendered);
   if (!files.length) {
     process.stderr.write('SkillGuard: no supported files could be scanned. Check the path and skipped-file details.\n');

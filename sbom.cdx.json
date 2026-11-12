@@ -1,0 +1,19 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-12T00:00:00Z",
+    "component": {
+      "type": "application",
+      "name": "skillguard-ai",
+      "version": "0.3.0",
+      "licenses": [{ "license": { "id": "MIT" } }],
+      "purl": "pkg:github/Khayom1/SkillGuard@0.3.0"
+    }
+  },
+  "components": [],
+  "dependencies": [
+    { "ref": "pkg:github/Khayom1/SkillGuard@0.3.0", "dependsOn": [] }
+  ]
+}

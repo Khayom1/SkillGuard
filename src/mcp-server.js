@@ -7,7 +7,7 @@
 import path from 'node:path';
 import readline from 'node:readline';
 import { VERSION } from './version.js';
-import { analyzeFile, createReport } from './scanner.js';
+import { analyzeFile, createReport } from './analyze.js';
 import { collectFiles } from './files.js';
 import { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
 import { readRegularFile } from './safe-fs.js';

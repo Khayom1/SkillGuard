@@ -62,7 +62,7 @@ These constraints are non-negotiable design principles, not optional features.
 
 ## Detection coverage
 
-SkillGuard currently ships **21 rule families** (SG001–SG021).
+SkillGuard currently ships **22 rule families** (SG001–SG022).
 
 | Rule   | Severity  | Detection |
 |--------|-----------|-----------|
@@ -85,8 +85,9 @@ SkillGuard currently ships **21 rule families** (SG001–SG021).
 | SG017  | High      | `eval`/`exec`, Python `shell=True`, PowerShell `Invoke-Expression` |
 | SG018  | Critical  | Multi-stage download then execute across nearby lines |
 | SG019  | High      | Dangerous MCP / agent tool declarations |
-| SG020  | High      | Homoglyph / confusable Unicode in instruction text |
+| SG020  | High      | Homoglyph token: Latin letters mixed with lookalike characters inside one word |
 | SG021  | High      | Unverified remote package installs (pip/npm from URL) |
+| SG022  | High      | Env/secret-like value flowing to a network or execution sink (JS/TS/Python) |
 
 Full rule reference: [docs/rules.md](docs/rules.md).
 
@@ -119,6 +120,7 @@ skillguard ./skills
 Machine-readable output:
 
 ```bash
+skillguard ./skills --format markdown --output review.md
 skillguard ./skills --format json --output report.json
 skillguard ./skills --format sarif --output skillguard.sarif
 ```
@@ -217,7 +219,7 @@ Run `verify` immediately before installation or deployment.
 
 | Option                 | Default | Description |
 |------------------------|---------|-------------|
-| `--format text\|json\|sarif` | `text`  | Report format |
+| `--format text\|json\|sarif\|markdown` | `text`  | Report format |
 | `--output FILE`        | stdout  | Write report to a file |
 | `--fail-on LEVEL`      | `high`  | Exit non-zero at or above this severity |
 | `--max-files N`        | `5000`  | Maximum files inspected |

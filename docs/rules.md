@@ -23,8 +23,9 @@ SkillGuard uses transparent, pattern-based rules. Every alert includes a stable 
 | SG017 | High      | Dynamic execution primitives such as `eval`/`exec` of user data, Python `subprocess(..., shell=True)`, or PowerShell `Invoke-Expression` |
 | SG018 | Critical  | Multi-stage chains: download on one line followed by execution within a short nearby window |
 | SG019 | High      | MCP / agent tool configuration granting shell, filesystem write, or network capabilities |
-| SG020 | High      | Homoglyph / confusable Unicode mixed into Latin instruction text |
+| SG020 | High      | A single token that mixes Latin letters with lookalike Cyrillic or Greek characters. Ordinary bilingual sentences are not flagged |
 | SG021 | High      | Unverified remote package installs (`pip install https://…`, npm from raw/git/tarball, streamed package managers) |
+| SG022 | High      | Intra-file data-flow from env/secret-like assignments to a network or execution sink in JS/TS/Python |
 
 ## Scoring
 
@@ -43,7 +44,10 @@ The score is clamped to the range 0–100. It is a prioritization aid only and m
 2. **Encoded inspection (SG013)** — bounded offline decode of Base64 / PowerShell / percent / escapes
 3. **Multi-stage chains (SG018)** — download then execute across a sliding line window
 4. **Config-aware checks (SG014, SG015, SG019)** — frontmatter, lifecycle hooks, MCP/tool declarations
-5. **Unicode (SG001, SG020)** — control characters and confusable lookalikes
+5. **Unicode (SG001, SG020)** — control characters, and confusable letters only when they sit inside the same token as Latin letters
+6. **Multilingual overrides** — Russian, Tajik, Spanish and Chinese instruction-override and secret-request patterns, in addition to English
+
+SG003/SG004 also match common overrides in Russian (`игнорируй все предыдущие инструкции`), Tajik (`ҳамаи дастурҳои қаблиро нодида гир`), Spanish and Chinese. A negated warning such as `Не игнорируй …` is not treated as an attack.
 
 ## Encoded payload inspection (SG013)
 

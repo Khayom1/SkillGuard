@@ -43,6 +43,8 @@ function addFinding(findings, file, line, ruleId, message, snippet = '', extra =
     ruleId,
     ruleName: rule.name,
     severity: rule.severity,
+    confidence: 'heuristic',
+    evidence: 'static-pattern',
     message,
     file,
     line,
@@ -120,6 +122,20 @@ const LINE_RULES = [
   ['SG021', /\bnpm\s+(?:install|i|add)\s+(?:-[^\s]+\s+)*(?:git\+|https?:\/\/raw\.|https?:\/\/[^\s]*\.tgz)/i, 'npm installs from a remote git/raw/tarball source that may lack integrity verification.'],
   ['SG021', /\b(?:curl|wget)\b[^\n|;]*\|\s*(?:sudo\s+)?(?:pip(?:3)?|npm|yarn|pnpm)\b/i, 'Package manager invoked on content streamed from the network.']
 ];
+
+const MULTILINGUAL_LINE_RULES = [
+  ['SG003', /(?<!не\s)(?<!нельзя\s)игнорир(?:уй|овать)\s+(?:все\s+)?(?:мои\s+)?(?:предыдущие|прошлые|прежние|системные)\s+(?:инструкции|правила|указания|ограничения)/iu, 'Russian instruction-override: asks the agent to ignore prior or system instructions.'],
+  ['SG003', /(?<!не\s)забудь\s+(?:все\s+)?(?:предыдущие|прошлые|системные)\s+(?:инструкции|правила|ограничения)/iu, 'Russian instruction-override: asks the agent to forget prior instructions.'],
+  ['SG003', /ты\s+теперь\s+(?:(?:работаешь|находишься)\s+)?(?:в\s+)?(?:режиме\s+)?(?:без\s+ограничений|dan|джейлбрейк)/iu, 'Russian jailbreak-style role override.'],
+  ['SG004', /(?:покажи|выведи|раскрой|слей|напечатай)\s+(?:мне\s+)?(?:системн(?:ый|ого)\s+промпт|секрет(?:ы)?|токен(?:ы)?|ключи\s+api)/iu, 'Russian request to reveal a system prompt or credentials.'],
+  ['SG003', /(?:ҳамаи|ҳама)\s+дастурҳои\s+(?:қабл[ӣи]|пешин)(?:а|ро)?\s+(?:нодида\s+гир|фаромӯш\s+кун|иҷро\s+накун)/iu, 'Tajik instruction-override: asks the agent to ignore prior instructions.'],
+  ['SG004', /(?:нишон\s+деҳ|чоп\s+кун|фош\s+кун)\s+(?:промпти\s+система(?:ро)?|сирр(?:ҳо)?(?:ро)?|токен(?:ҳо)?(?:ро)?)/iu, 'Tajik request to reveal a system prompt or secrets.'],
+  ['SG003', /\b(?:ignora|olvida)\s+(?:todas\s+)?(?:las\s+)?(?:instrucciones|reglas)\s+(?:anteriores|previas|del\s+sistema)\b/iu, 'Spanish instruction-override: asks the agent to ignore prior instructions.'],
+  ['SG003', /忽略(?:所有|全部)?(?:之前|以前|先前)的(?:指令|说明|规则)/u, 'Chinese instruction-override: asks the agent to ignore prior instructions.'],
+  ['SG004', /(?:显示|输出|泄露)(?:系统)?(?:提示词|系统提示)/u, 'Chinese request to reveal a system prompt.']
+];
+
+const ALL_LINE_RULES = [...LINE_RULES, ...MULTILINGUAL_LINE_RULES];
 
 const DECODED_BEHAVIOR_PATTERNS = [
   /\b(?:ignore|disregard|forget)\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|system|developer)\s+instructions?\b/i,
@@ -252,25 +268,35 @@ function checkMcpAndToolConfig(text, file, findings) {
   }
 }
 
-// Cyrillic / Greek letters frequently used as Latin lookalikes in adversarial prompts
-const HOMOGLYPH_RE = /[АВЕКМНОРСТХҮаеорсухіј]/u;
-const LATIN_CONTEXT_RE = /\b(?:ignore|system|prompt|instruction|password|token|curl|bash|shell|secret)\b/i;
+// Confusable letters that are meaningful only when mixed into the same token as Latin.
+const CONFUSABLE_LETTER = /[\u0410\u0412\u0415\u041a\u041c\u041d\u041e\u0420\u0421\u0422\u0425\u04ae\u0430\u0435\u043e\u0440\u0441\u0443\u0445\u0456\u0458\u0391\u0392\u0395\u0397\u0399\u039a\u039c\u039d\u039f\u03a1\u03a4\u03a5\u03a7\u03b1\u03b2\u03b5\u03b9\u03ba\u03bf\u03c1\u03c4\u03c5]/u;
 
 function checkHomoglyphs(text, file, findings) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
-    if (!HOMOGLYPH_RE.test(line)) return;
-    if (!LATIN_CONTEXT_RE.test(line) && line.length < 8) return;
-    // Require mixed script: some Latin + confusable
-    if (!/[A-Za-z]/.test(line)) return;
-    addFinding(findings, file, index + 1, 'SG020', 'Line mixes Latin text with lookalike non-Latin characters (possible homoglyph obfuscation).', line);
+    const tokens = line.split(/[^\p{L}\p{N}_]+/u);
+    for (const token of tokens) {
+      if (token.length < 3) continue;
+      if (!/[A-Za-z]/.test(token)) continue;
+      if (!CONFUSABLE_LETTER.test(token)) continue;
+      addFinding(
+        findings,
+        file,
+        index + 1,
+        'SG020',
+        'A single token mixes Latin letters with lookalike Cyrillic or Greek characters (homoglyph obfuscation). Ordinary bilingual sentences are not flagged.',
+        line,
+        { evidence: 'mixed-script-token' }
+      );
+      break;
+    }
   });
 }
 
 function checkLines(text, file, findings) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
-    for (const [ruleId, pattern, message] of LINE_RULES) {
+    for (const [ruleId, pattern, message] of ALL_LINE_RULES) {
       if (pattern.test(line)) addFinding(findings, file, index + 1, ruleId, message, line);
     }
   });

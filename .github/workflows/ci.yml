@@ -33,6 +33,9 @@ jobs:
       - name: Run unit and integration tests
         run: npm test
 
+      - name: Synthetic benchmark
+        run: npm run benchmark
+
       - name: Syntax and module checks
         run: npm run check
 

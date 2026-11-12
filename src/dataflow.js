@@ -4,7 +4,7 @@
  * to network or execution sinks within the same file.
  */
 
-const JS_SOURCE = /\b(?:process\.env(?:\.[A-Za-z0-9_]+|\[[^\]]+\])|Deno\.env\.get\s*\(|os\.environ(?:\[[^\]]+\]|\.get\s*\())|os\.getenv\s*\()/;
+const JS_SOURCE = /\b(?:process\.env(?:\.[A-Za-z0-9_]+|\[[^\]]+\])|Deno\.env\.get\s*\(|os\.environ(?:\[[^\]]+\]|\.get\s*\()|os\.getenv\s*\()/;
 const JS_ASSIGN = /(?:const|let|var)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;\n]+)/g;
 const PY_ASSIGN = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/gm;
 

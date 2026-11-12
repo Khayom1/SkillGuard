@@ -62,6 +62,21 @@ Schema:
 }
 ```
 
+## Report provenance and Markdown
+
+JSON and Markdown reports include `provenance`:
+
+- scanner version and scan time
+- SHA-256 of each inspected text
+- local Git commit and ref when a `.git` directory is present
+
+SkillGuard reads those files directly. It does not run `git` and it does not contact a remote.
+
+```bash
+skillguard ./my-skill --format markdown --output review.md
+skillguard ./my-skill --format json --output report.json
+```
+
 ## Local MCP server
 
 ```bash
