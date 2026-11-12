@@ -1,6 +1,11 @@
-export { analyzeFile, createReport, getRule } from './scanner.js';
+export { analyzeFile, createReport, getRule } from './analyze.js';
+export { analyzeFile as analyzeFileCore } from './scanner.js';
 export { parseFrontmatter } from './frontmatter.js';
 export { collectFiles, MAX_FILE_BYTES } from './files.js';
 export { formatText, toSarif } from './reporters.js';
 export { RULES, SEVERITY_ORDER } from './rules.js';
 export { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
+export { readZipTextMembers } from './zip.js';
+export { analyzeDataFlow, supportsDataFlow } from './dataflow.js';
+export { applyBaseline, createBaselineDocument, loadBaseline, writeBaseline } from './baseline.js';
+export { loadRulePack, applyRulePacks } from './packs.js';
