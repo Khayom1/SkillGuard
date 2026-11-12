@@ -6,7 +6,7 @@
 
 **Security gate for AI agent skills.**
 
-Inspect complete skill bundles before an agent installs or executes them. Detect prompt injection, secrets, reverse shells, destructive commands, hidden Unicode, and supply-chain risk patterns — without ever running the content under inspection.
+Inspect complete skill bundles before an agent installs or executes them. Detect prompt injection, secrets, reverse shells, destructive commands, hidden Unicode, multi-stage install chains, MCP tool risk, and supply-chain patterns — without ever running the content under inspection.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-65d6b4?style=for-the-badge)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -30,10 +30,11 @@ Risks that commonly appear in unaudited skills include:
 
 - Prompt-injection and instruction-override payloads
 - Hard-coded credentials and private keys
-- Download-and-execute chains and reverse shells
-- Destructive filesystem operations
-- Persistence mechanisms and credential-store references
-- Invisible or bidirectional Unicode that alters what a human reviewer sees versus what the agent processes
+- Download-and-execute chains (single-line and multi-stage)
+- Reverse shells and destructive filesystem operations
+- MCP / tool configs that grant shell or network power
+- Homoglyph Unicode that disguises instructions
+- Unverified remote package installs
 
 SkillGuard treats the entire bundle as the unit of analysis. It performs bounded, offline static inspection and produces actionable, reviewable findings.
 
@@ -54,14 +55,14 @@ These constraints are non-negotiable design principles, not optional features.
 
 1. **Discover** — Walk the target path under strict file, size, directory, and depth limits.
 2. **Inspect safely** — Read supported text and code files via verified file descriptors; perform bounded decoding of selected encodings.
-3. **Evaluate** — Apply transparent, pattern-based rules covering instructions, secrets, execution chains, persistence, and permissions.
+3. **Evaluate** — Apply layered checks: line heuristics, encoded payloads, multi-stage chains, MCP/tool config, Unicode/homoglyphs.
 4. **Explain** — Emit findings with rule ID, severity, file, line, and concise rationale.
 5. **Integrate** — Produce text, JSON, or SARIF 2.1.0 output; enforce thresholds via CLI or GitHub Action.
 6. **Verify** — Create and later validate a SHA-256 integrity lock of the reviewed bundle.
 
 ## Detection coverage
 
-SkillGuard currently ships **17 rule families** (stable IDs SG001–SG017).
+SkillGuard currently ships **21 rule families** (SG001–SG021).
 
 | Rule   | Severity  | Detection |
 |--------|-----------|-----------|
@@ -75,13 +76,17 @@ SkillGuard currently ships **17 rule families** (stable IDs SG001–SG017).
 | SG008  | High      | Startup, service, scheduled-task and autorun persistence |
 | SG009  | High      | References to credential stores and private-key locations |
 | SG010  | High      | Encoded content passed to dynamic code execution |
-| SG011  | Critical  | Secret access combined with network transfer |
+| SG011  | Critical  | Secret access combined with network transfer; webhook exfil endpoints |
 | SG012  | Medium    | Broad privilege requests and unsafe filesystem permissions |
 | SG013  | High      | Encoded payloads that decode to recognizable risky behavior |
 | SG014  | Medium    | Frontmatter pre-authorizing shell or command tools |
 | SG015  | Medium    | Agent lifecycle hooks paired with automatic commands |
 | SG016  | Critical  | Reverse shells, netcat listeners, remote interactive access |
 | SG017  | High      | `eval`/`exec`, Python `shell=True`, PowerShell `Invoke-Expression` |
+| SG018  | Critical  | Multi-stage download then execute across nearby lines |
+| SG019  | High      | Dangerous MCP / agent tool declarations |
+| SG020  | High      | Homoglyph / confusable Unicode in instruction text |
+| SG021  | High      | Unverified remote package installs (pip/npm from URL) |
 
 Full rule reference: [docs/rules.md](docs/rules.md).
 
@@ -127,7 +132,7 @@ skillguard verify ./my-skill
 
 No API key. No runtime dependencies. No network access required for scanning.
 
-> **Package:** `skillguard-ai` **v0.3.0**. Until the public npm registry publish is live, install from this repository as shown above.
+> **Package:** `skillguard-ai` **v0.3.0** (detection upgrades in tree are listed under **Unreleased** in the changelog until the next version bump).
 
 ## Example report
 
@@ -244,54 +249,13 @@ npm run benchmark
 npm run verify
 ```
 
-Safe example:
-
-```bash
-node src/cli.js examples/safe-skill --format json --fail-on none
-```
-
-Intentionally risky fixture (inert; guarded patterns):
-
-```bash
-node src/cli.js examples/risky-skill --format text --fail-on none
-```
-
 The project uses Node’s built-in test runner and maintains zero runtime dependencies. Benchmark methodology is documented in [docs/benchmark.md](docs/benchmark.md).
-
-## Project layout
-
-```text
-SkillGuard/
-├── src/                  # Core scanner, CLI, integrity, reporters
-├── tests/                # Unit and integration tests
-├── benchmarks/           # Synthetic regression cases
-├── examples/             # Safe and intentionally risky fixtures
-├── docs/                 # Architecture, rules, threat model, guides
-├── .github/              # CI, Action, issue/PR templates
-├── action.yml            # Reusable GitHub Action
-├── SECURITY.md           # Supported versions & disclosure
-├── SUPPORT.md            # How to get help
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── CHANGELOG.md
-└── README.md
-```
 
 ## Threat model and limitations
 
 SkillGuard is a heuristic static analyzer. It is one control in a defense-in-depth process. It is not a sandbox, antivirus engine, formal verifier, or safety certification.
 
-Key limitations:
-
-- Pattern matching produces both false positives and false negatives.
-- Novel, multi-stage, heavily obfuscated, or context-dependent attacks may evade detection.
-- External URL reputation is not checked (no network requests are made).
-- Not every language construct or YAML feature is semantically interpreted.
-- Encoded inspection is bounded and covers selected representations only.
-- Unsupported file types and excluded directories are reported as skipped.
-- A clean report does **not** prove that a skill is safe.
-
-Recommended practice: review findings, sandbox agent execution, apply least privilege, and require human approval for consequential actions.
+A clean report does **not** prove that a skill is safe.
 
 See the full [Threat Model](docs/THREAT_MODEL.md), [Architecture](docs/architecture.md), [Rules](docs/rules.md), [Roadmap](docs/ROADMAP.md), and [Competitive Landscape](docs/competitive-landscape.md).
 
@@ -305,11 +269,10 @@ See the full [Threat Model](docs/THREAT_MODEL.md), [Architecture](docs/architect
 
 ## Security, support, and contributing
 
-- [Security Policy](SECURITY.md) — supported versions and vulnerability reporting
-- [Support](SUPPORT.md) — how to get help
+- [Security Policy](SECURITY.md)
+- [Support](SUPPORT.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Contributing Guide](CONTRIBUTING.md)
-- [Release process](docs/release.md)
 
 ## License
 
@@ -319,11 +282,11 @@ MIT License. See [LICENSE](LICENSE).
 
 <div align="center">
 
-**SkillGuard v0.3.0**
+**SkillGuard v0.3.0** · detection upgrades in progress (see Unreleased)
 
 Created and maintained by **[Khayom Abdurahmonov](https://github.com/Khayom1)**
 
-[GitHub](https://github.com/Khayom1) · [Repository](https://github.com/Khayom1/SkillGuard) · [Issues](https://github.com/Khayom1/SkillGuard/issues) · [VEYROST](https://veyrost.is-a.dev/) · [Profile site](https://khayom1.github.io/)
+[GitHub](https://github.com/Khayom1) · [Repository](https://github.com/Khayom1/SkillGuard) · [VEYROST](https://veyrost.is-a.dev/) · [Profile](https://khayom1.github.io/)
 
 *Inspect the skill. Understand the risk. Keep control.*
 
