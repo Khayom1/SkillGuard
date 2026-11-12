@@ -3,19 +3,24 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VERSION } from './version.js';
-import { analyzeFile, createReport } from './scanner.js';
+import { analyzeFile, createReport } from './analyze.js';
 import { collectFiles } from './files.js';
 import { formatText, toSarif } from './reporters.js';
 import { SEVERITY_ORDER } from './rules.js';
 import { createIntegrityLock, verifyIntegrityLock } from './integrity.js';
 import { readRegularFile } from './safe-fs.js';
+import { readZipTextMembers } from './zip.js';
+import { applyBaseline, createBaselineDocument, loadBaseline, writeBaseline } from './baseline.js';
+import { loadRulePack } from './packs.js';
 
 const HELP = `SkillGuard ${VERSION} — security auditing and integrity checks for AI agent skills
 
 USAGE
   skillguard [scan] [path ...] [options]
-  skillguard lock [skill-directory] [--output skillguard.lock.json]
-  skillguard verify [skill-directory] [--lock skillguard.lock.json]
+  skillguard lock [skill-directory] [--output .skillguard.lock.json]
+  skillguard verify [skill-directory] [--lock .skillguard.lock.json]
+  skillguard baseline create [path ...] [--output .skillguard-baseline.json]
+  skillguard mcp
 
 SCAN OPTIONS
   --format <text|json|sarif>  Output format (default: text)
@@ -26,10 +31,16 @@ SCAN OPTIONS
   --max-directories <number>  Maximum directories to visit (default: 10000)
   --max-depth <number>        Maximum directory depth (default: 40)
   --allow-skipped             Exit successfully even when some files were skipped
+  --baseline <file>           Suppress findings listed in a baseline file
+  --pack <file>               Load an offline custom rule pack (repeatable)
 
 LOCK / VERIFY OPTIONS
   --output <file>             Lock output path (lock); report path (verify)
   --lock <file>               Lock file to verify (default: .skillguard.lock.json)
+
+BASELINE OPTIONS
+  --output <file>             Baseline output path (default: .skillguard-baseline.json)
+  --reason <text>             Reason recorded for accepted findings
 
 GENERAL
   --no-color                  Disable terminal colors
@@ -38,9 +49,11 @@ GENERAL
 
 EXAMPLES
   skillguard ./my-skill
-  skillguard ./skills --format sarif --output skillguard.sarif
-  skillguard lock ./my-skill
-  skillguard verify ./my-skill
+  skillguard ./bundle.zip
+  skillguard ./skills --baseline .skillguard-baseline.json
+  skillguard ./skills --pack ./packs/extra.json
+  skillguard baseline create ./my-skill --reason "Reviewed 2026-11-12"
+  skillguard mcp
 
 SkillGuard never executes skill scripts or downloads remote content.
 `;
@@ -48,8 +61,32 @@ SkillGuard never executes skill scripts or downloads remote content.
 function parseArgs(argv) {
   const args = [...argv];
   let command = 'scan';
-  if (['scan', 'lock', 'verify'].includes(args[0])) command = args.shift();
-  const result = { command, paths: [], format: 'text', output: null, lock: null, failOn: 'high', maxFiles: 5000, maxFileBytes: 1024 * 1024, maxDirectories: 10000, maxDepth: 40, allowSkipped: false, color: process.stdout.isTTY === true, help: false, version: false };
+  if (['scan', 'lock', 'verify', 'baseline', 'mcp'].includes(args[0])) command = args.shift();
+  let baselineSub = null;
+  if (command === 'baseline') {
+    baselineSub = args.shift() ?? 'create';
+    if (baselineSub !== 'create') throw new Error('Only "baseline create" is supported.');
+  }
+  const result = {
+    command,
+    baselineSub,
+    paths: [],
+    format: 'text',
+    output: null,
+    lock: null,
+    failOn: 'high',
+    maxFiles: 5000,
+    maxFileBytes: 1024 * 1024,
+    maxDirectories: 10000,
+    maxDepth: 40,
+    allowSkipped: false,
+    color: process.stdout.isTTY === true,
+    help: false,
+    version: false,
+    baseline: null,
+    packs: [],
+    reason: ''
+  };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     const next = () => {
@@ -66,6 +103,9 @@ function parseArgs(argv) {
     else if (arg === '--max-directories') result.maxDirectories = Number(next());
     else if (arg === '--max-depth') result.maxDepth = Number(next());
     else if (arg === '--allow-skipped') result.allowSkipped = true;
+    else if (arg === '--baseline') result.baseline = next();
+    else if (arg === '--pack') result.packs.push(next());
+    else if (arg === '--reason') result.reason = next();
     else if (arg === '--no-color') result.color = false;
     else if (arg === '--help' || arg === '-h') result.help = true;
     else if (arg === '--version' || arg === '-v') result.version = true;
@@ -85,6 +125,89 @@ function parseArgs(argv) {
 async function writeOutput(outputPath, rendered) {
   if (outputPath) await fs.writeFile(path.resolve(outputPath), `${rendered}\n`, 'utf8');
   else process.stdout.write(`${rendered}\n`);
+}
+
+async function collectScanInputs(paths, options) {
+  const files = [];
+  const skipped = [];
+  const roots = [];
+  for (const input of paths.length ? paths : ['.']) {
+    const absolute = path.resolve(input);
+    roots.push(absolute);
+    if (absolute.toLowerCase().endsWith('.zip')) {
+      const zip = await readZipTextMembers(absolute, {
+        maxUncompressedFile: options.maxFileBytes
+      });
+      for (const member of zip.members) {
+        files.push({ filePath: `${path.basename(absolute)}/${member.filePath}`, content: member.content });
+      }
+      skipped.push(...zip.skipped.map((item) => ({ file: `${path.basename(absolute)}/${item.file}`, reason: item.reason })));
+      continue;
+    }
+    const collected = await collectFiles([absolute], options);
+    files.push(...collected.files);
+    skipped.push(...collected.skipped);
+  }
+  return { files, skipped, roots };
+}
+
+async function loadPacks(packPaths) {
+  const packs = [];
+  for (const packPath of packPaths) packs.push(await loadRulePack(packPath));
+  return packs;
+}
+
+async function runScan(options, { writeBaselineFromFindings = false } = {}) {
+  const packs = await loadPacks(options.packs);
+  const { files, skipped } = await collectScanInputs(options.paths, options);
+  let findings = files.flatMap((file) => analyzeFile({
+    filePath: path.relative(process.cwd(), file.filePath),
+    content: file.content
+  }, { packs }));
+
+  let suppressed = [];
+  if (options.baseline) {
+    const baselineDoc = await loadBaseline(options.baseline);
+    const applied = applyBaseline(findings, baselineDoc);
+    findings = applied.active;
+    suppressed = applied.suppressed;
+  }
+
+  if (writeBaselineFromFindings) {
+    const doc = createBaselineDocument({ findings, reason: options.reason, version: VERSION });
+    const out = path.resolve(options.output ?? '.skillguard-baseline.json');
+    await writeBaseline(out, doc);
+    process.stdout.write(`SkillGuard: baseline created with ${doc.accepted.length} accepted finding(s): ${out}\n`);
+    return 0;
+  }
+
+  const report = createReport({
+    findings,
+    filesScanned: files.length,
+    skipped,
+    root: options.paths.length ? options.paths.join(', ') : '.'
+  });
+  if (suppressed.length) {
+    report.summary.suppressed = suppressed.length;
+    report.suppressed = suppressed;
+  }
+  const rendered = options.format === 'json'
+    ? JSON.stringify(report, null, 2)
+    : options.format === 'sarif'
+      ? JSON.stringify(toSarif(report), null, 2)
+      : formatText(report, { color: options.color });
+  await writeOutput(options.output, rendered);
+  if (!files.length) {
+    process.stderr.write('SkillGuard: no supported files could be scanned. Check the path and skipped-file details.\n');
+    return 2;
+  }
+  if (skipped.length && !options.allowSkipped) {
+    process.stderr.write(`SkillGuard: scan incomplete; ${skipped.length} item(s) were skipped. Resolve them or explicitly pass --allow-skipped.\n`);
+    return 2;
+  }
+  const threshold = SEVERITY_ORDER[options.failOn];
+  const shouldFail = options.failOn !== 'none' && findings.some((finding) => SEVERITY_ORDER[finding.severity] >= threshold);
+  return shouldFail ? 1 : 0;
 }
 
 async function runLock(options) {
@@ -134,25 +257,14 @@ export async function run(argv = process.argv.slice(2)) {
   if (options.help) { process.stdout.write(HELP); return 0; }
   if (options.version) { process.stdout.write(`${VERSION}\n`); return 0; }
   try {
+    if (options.command === 'mcp') {
+      await import('./mcp-server.js');
+      return 0;
+    }
     if (options.command === 'lock') return await runLock(options);
     if (options.command === 'verify') return await runVerify(options);
-
-    const { files, skipped } = await collectFiles(options.paths, options);
-    const findings = files.flatMap((file) => analyzeFile({ filePath: path.relative(process.cwd(), file.filePath), content: file.content }));
-    const report = createReport({ findings, filesScanned: files.length, skipped, root: options.paths.length ? options.paths.join(', ') : '.' });
-    const rendered = options.format === 'json' ? JSON.stringify(report, null, 2) : options.format === 'sarif' ? JSON.stringify(toSarif(report), null, 2) : formatText(report, { color: options.color });
-    await writeOutput(options.output, rendered);
-    if (!files.length) {
-      process.stderr.write('SkillGuard: no supported files could be scanned. Check the path and skipped-file details.\n');
-      return 2;
-    }
-    if (skipped.length && !options.allowSkipped) {
-      process.stderr.write(`SkillGuard: scan incomplete; ${skipped.length} item(s) were skipped. Resolve them or explicitly pass --allow-skipped.\n`);
-      return 2;
-    }
-    const threshold = SEVERITY_ORDER[options.failOn];
-    const shouldFail = options.failOn !== 'none' && findings.some((finding) => SEVERITY_ORDER[finding.severity] >= threshold);
-    return shouldFail ? 1 : 0;
+    if (options.command === 'baseline') return await runScan(options, { writeBaselineFromFindings: true });
+    return await runScan(options);
   } catch (error) {
     process.stderr.write(`SkillGuard: unexpected error: ${error.message}\n`);
     return 2;
