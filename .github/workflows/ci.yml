@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -17,18 +22,28 @@ jobs:
       matrix:
         node-version: [18, 20, 22]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm test
-      - run: npm run check
-      - name: Verify npm package contents
+
+      - name: Run unit and integration tests
+        run: npm test
+
+      - name: Syntax and module checks
+        run: npm run check
+
+      - name: Verify package contents
         run: npm pack --dry-run
-      - name: Test composite GitHub Action
+
+      - name: Exercise composite GitHub Action
         uses: ./
         with:
           path: ./examples/safe-skill
           fail-on: none
-      - name: Scan example skill
+
+      - name: Scan safe example skill
         run: node src/cli.js examples/safe-skill --format json --fail-on none
