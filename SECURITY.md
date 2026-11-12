@@ -4,10 +4,11 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.2.x   | :white_check_mark: |
+| 0.3.x   | :white_check_mark: |
+| 0.2.x   | :white_check_mark: (security fixes only until 0.3 is established) |
 | < 0.2   | :x:                |
 
-Security fixes are applied to the latest released minor version. Users are strongly encouraged to run the current stable release.
+Security fixes are applied to the latest released minor version first. Users are strongly encouraged to run the current stable release (**0.3.x**).
 
 ## Reporting a Vulnerability
 
@@ -16,7 +17,7 @@ Security fixes are applied to the latest released minor version. Users are stron
 Please use one of the following channels:
 
 1. **Preferred**: GitHub Security Advisories — go to the repository **Security** tab and select **Report a vulnerability**.
-2. If the advisory feature is unavailable, contact the maintainer privately through the profile contact methods.
+2. If the advisory feature is unavailable, contact the maintainer privately through the [GitHub profile](https://github.com/Khayom1).
 
 When reporting, please include:
 
@@ -65,3 +66,4 @@ We follow responsible disclosure practices. Once a fix is available, we will pub
 - [Threat Model](docs/THREAT_MODEL.md)
 - [Architecture](docs/architecture.md)
 - [Detection Rules](docs/rules.md)
+- Maintainer: [Khayom Abdurahmonov](https://github.com/Khayom1)
