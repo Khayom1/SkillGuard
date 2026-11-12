@@ -9,8 +9,7 @@
   "license": "MIT",
   "author": {
     "name": "Khayom Abdurahmonov",
-    "url": "https://github.com/Khayom1",
-    "email": ""
+    "url": "https://github.com/Khayom1"
   },
   "bin": {
     "skillguard": "./src/cli.js"
