@@ -58,11 +58,13 @@
     "benchmarks/cases.json",
     "README.md",
     "LICENSE",
+    "AUTHORS",
     "SECURITY.md",
     "SUPPORT.md",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
+    "RELEASE_NOTES.md",
     "docs/",
     "action.yml"
   ]
