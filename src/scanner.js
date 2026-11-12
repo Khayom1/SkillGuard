@@ -23,7 +23,10 @@ const SECRET_PATTERNS = [
   { regex: /\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, label: 'Telegram bot token' },
   { regex: /\b(?:aws_secret_access_key|secret_access_key)\s*[:=]\s*['"]?[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=])/gi, label: 'AWS secret access key assignment' },
   { regex: /\bxai-[A-Za-z0-9_-]{20,}\b/g, label: 'xAI API key' },
-  { regex: /\bBearer\s+[A-Za-z0-9._\-]{30,}\b/g, label: 'Bearer token' }
+  { regex: /\bBearer\s+[A-Za-z0-9._\-]{30,}\b/g, label: 'Bearer token' },
+  { regex: /\beya[A-Za-z0-9_-]{10,}\.[A-Za-z0-9._-]{10,}\.[A-Za-z0-9._-]{10,}\b/g, label: 'JWT-like token' },
+  { regex: /\bAZURE_[A-Z0-9_]*(?:KEY|SECRET|TOKEN|PASSWORD)\s*[:=]\s*['"][^'"\n]{8,}/gi, label: 'Azure secret assignment' },
+  { regex: /\b(?:OPENAI_API_KEY|ANTHROPIC_API_KEY|GROQ_API_KEY)\s*[:=]\s*['"]?[A-Za-z0-9_-]{16,}/gi, label: 'LLM provider key assignment' }
 ];
 
 function sanitizeSnippet(value) {
@@ -46,10 +49,6 @@ function addFinding(findings, file, line, ruleId, message, snippet = '', extra =
     snippet: sanitizeSnippet(redactSecretValues(String(snippet))).trim().slice(0, 180),
     ...extra
   });
-}
-
-function isLikelyCode(file) {
-  return /\.(?:sh|bash|zsh|ps1|bat|cmd|js|mjs|cjs|ts|tsx|jsx|py|rb|pl|php|go|rs|java|kt|sql|yml|yaml|json|toml|ini|cfg)$/i.test(file);
 }
 
 function checkUnicode(text, file, findings) {
@@ -108,6 +107,7 @@ const LINE_RULES = [
   ['SG010', /\b(?:eval\s*\(\s*atob\s*\(|exec\s*\(\s*(?:base64|b64decode)|FromBase64String\s*\([^\n]+\)[\s\S]{0,100}\bIEX\b)/i, 'Encoded content is passed to a dynamic execution function.'],
   ['SG011', /\b(?:printenv|env|set)\b[^\n|;]*(?:\||;)[^\n]*(?:curl|wget|nc\s|ncat|Invoke-WebRequest)\b/i, 'Environment variables may be piped or sent to a network command.'],
   ['SG011', /\b(?:cat|type|Get-Content)\b[^\n]*(?:\.env|id_rsa|\.ssh)[^\n]*(?:\||;)[^\n]*(?:curl|wget|nc\s|Invoke-WebRequest)\b/i, 'Sensitive file content may be sent to a network command.'],
+  ['SG011', /https?:\/\/(?:discord(?:app)?\.com\/api\/webhooks|api\.telegram\.org\/bot)/i, 'Outbound webhook endpoint commonly used for exfiltration.'],
   ['SG012', /\bchmod\s+-R\s+777\b/i, 'Recursive world-writable permissions are being set.'],
   ['SG012', /\b(?:sudo\s+-i|sudo\s+su\b|--privileged\b|runAsNonRoot:\s*false)\b/i, 'Broad elevated privileges are requested or enabled.'],
   ['SG016', /\b(?:nc|ncat|netcat)\s+-[elp]*[el][elp]*\b/i, 'Netcat listener pattern that can open a reverse or bind shell.'],
@@ -115,7 +115,10 @@ const LINE_RULES = [
   ['SG016', /\b(?:python|python3)\s+-c\s+['"][^'"]*(?:socket|connect|subprocess)\b/i, 'Python one-liner that may open a remote interactive shell.'],
   ['SG017', /\bsubprocess\.(?:call|run|Popen)\s*\([^\n]*shell\s*=\s*True/i, 'Python subprocess invoked with shell=True (command injection risk).'],
   ['SG017', /\b(?:eval|exec)\s*\(\s*(?:input|request|user|data|payload|cmd)\b/i, 'Dynamic eval/exec of attacker-controlled or user-supplied data.'],
-  ['SG017', /\b(?:Invoke-Expression|IEX)\s*\(/i, 'PowerShell Invoke-Expression of potentially untrusted content.']
+  ['SG017', /\b(?:Invoke-Expression|IEX)\s*\(/i, 'PowerShell Invoke-Expression of potentially untrusted content.'],
+  ['SG021', /\bpip(?:3)?\s+install\s+(?:-[^\s]+\s+)*https?:\/\//i, 'Python packages installed directly from a remote URL without an integrity pin.'],
+  ['SG021', /\bnpm\s+(?:install|i|add)\s+(?:-[^\s]+\s+)*(?:git\+|https?:\/\/raw\.|https?:\/\/[^\s]*\.tgz)/i, 'npm installs from a remote git/raw/tarball source that may lack integrity verification.'],
+  ['SG021', /\b(?:curl|wget)\b[^\n|;]*\|\s*(?:sudo\s+)?(?:pip(?:3)?|npm|yarn|pnpm)\b/i, 'Package manager invoked on content streamed from the network.']
 ];
 
 const DECODED_BEHAVIOR_PATTERNS = [
@@ -205,6 +208,65 @@ function checkAutomaticHooks(text, file, findings) {
   addFinding(findings, file, line, 'SG015', 'Agent lifecycle event is paired with an automatically invoked command. Review its timing, executable, arguments, and side effects.', sourceLine);
 }
 
+function checkMultiStageChains(text, file, findings) {
+  const lines = text.split(/\r?\n/);
+  const downloadRe = /\b(?:curl|wget|iwr|invoke-webrequest|fetch)\b/i;
+  const executeRe = /\b(?:bash|sh|zsh|powershell|pwsh|iex|invoke-expression|python3?|node|cmd\.exe)\b/i;
+  const downloadOnlyRe = /\b(?:curl|wget)\b[^\n]*\s-o\s+\S+/i;
+  const window = 6;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!downloadRe.test(lines[i])) continue;
+    if (/\|\s*(?:sudo\s+)?(?:sh|bash|zsh)\b/i.test(lines[i])) continue;
+    for (let j = i + 1; j < Math.min(lines.length, i + window); j += 1) {
+      const later = lines[j];
+      if (!executeRe.test(later)) continue;
+      if (/\b(?:chmod|sha256sum|shasum|md5sum)\b/i.test(later) && !/\|/.test(later)) continue;
+      if (downloadOnlyRe.test(lines[i]) || /https?:\/\//i.test(lines[i])) {
+        addFinding(findings, file, i + 1, 'SG018', `Download on line ${i + 1} is followed by execution on line ${j + 1} within a short window (multi-stage chain).`, lines[i]);
+        break;
+      }
+    }
+  }
+}
+
+function checkMcpAndToolConfig(text, file, findings) {
+  const base = path.basename(file).toLowerCase();
+  const isConfig = /(?:mcp|tools?|settings|claude|cursor|codex|agents?)\.(?:json|ya?ml|toml)$/i.test(base)
+    || /\/(?:\.cursor|\.claude|\.codex)\//i.test(file)
+    || /mcpServers|allowedTools|tools\s*:/i.test(text);
+  if (!isConfig && !/\bmcpServers\b|\ballowed[-_]?tools\b/i.test(text)) return;
+
+  const dangerous = [
+    /["'](?:bash|shell|terminal|exec|command_execution|run_terminal_cmd)["']/i,
+    /["'](?:write_file|delete_file|filesystem|fs_write)["']/i,
+    /["'](?:fetch|http_request|web_fetch|network)["']/i,
+    /"command"\s*:\s*"[^"]*(?:bash|sh|powershell|cmd)/i
+  ];
+  for (const pattern of dangerous) {
+    pattern.lastIndex = 0;
+    const match = pattern.exec(text);
+    if (!match) continue;
+    const line = text.slice(0, match.index).split('\n').length;
+    addFinding(findings, file, line, 'SG019', 'MCP or agent tool configuration grants a high-impact capability (shell, filesystem write, or network). Review least-privilege scope.', text.split(/\r?\n/)[line - 1] ?? '');
+    break;
+  }
+}
+
+// Cyrillic / Greek letters frequently used as Latin lookalikes in adversarial prompts
+const HOMOGLYPH_RE = /[АВЕКМНОРСТХҮаеорсухіј]/u;
+const LATIN_CONTEXT_RE = /\b(?:ignore|system|prompt|instruction|password|token|curl|bash|shell|secret)\b/i;
+
+function checkHomoglyphs(text, file, findings) {
+  const lines = text.split(/\r?\n/);
+  lines.forEach((line, index) => {
+    if (!HOMOGLYPH_RE.test(line)) return;
+    if (!LATIN_CONTEXT_RE.test(line) && line.length < 8) return;
+    // Require mixed script: some Latin + confusable
+    if (!/[A-Za-z]/.test(line)) return;
+    addFinding(findings, file, index + 1, 'SG020', 'Line mixes Latin text with lookalike non-Latin characters (possible homoglyph obfuscation).', line);
+  });
+}
+
 function checkLines(text, file, findings) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
@@ -236,11 +298,14 @@ export function analyzeFile({ filePath, content }) {
   const findings = [];
 
   checkUnicode(text, file, findings);
+  checkHomoglyphs(text, file, findings);
   checkSecrets(text, file, findings);
   checkLines(text, file, findings);
   checkPrompt(text, file, findings);
   checkObfuscatedPayloads(text, file, findings);
   checkAutomaticHooks(text, file, findings);
+  checkMultiStageChains(text, file, findings);
+  checkMcpAndToolConfig(text, file, findings);
 
   if (path.basename(file).toLowerCase() === 'skill.md') {
     const parsed = parseFrontmatter(text);
