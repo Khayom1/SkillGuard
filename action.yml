@@ -1,23 +1,25 @@
-name: SkillGuard Security Scan
-description: Audit AI agent skills and bundled scripts for risky instructions and execution patterns.
-author: Khayom Abdurahmonov
+name: 'SkillGuard Security Scan'
+description: 'Offline static security audit of AI agent skill bundles. Detects prompt injection, secrets, reverse shells, destructive commands and supply-chain risk patterns without executing scanned content.'
+author: 'Khayom Abdurahmonov'
+
 inputs:
   path:
-    description: Path to a skill directory or file.
+    description: 'Path to a skill directory or file to audit.'
     required: false
-    default: .
+    default: '.'
   fail-on:
-    description: Minimum severity that fails the workflow (critical, high, medium, low, none).
+    description: 'Minimum severity that fails the workflow (critical, high, medium, low, none).'
     required: false
-    default: high
+    default: 'high'
   upload-sarif:
-    description: Upload a SARIF report to GitHub Code Scanning (requires code-scanning write permission).
+    description: 'Upload generated SARIF report to GitHub Code Scanning (requires security-events: write).'
     required: false
     default: 'false'
   sarif-file:
-    description: Path for the generated SARIF file.
+    description: 'Path for the generated SARIF report.'
     required: false
-    default: skillguard.sarif
+    default: 'skillguard.sarif'
+
 runs:
   using: composite
   steps:
