@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a new capability or improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem first, then the proposed solution.
+        SkillGuard prioritizes offline operation, explainability, and the never-execute boundary.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What pain point or gap does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should SkillGuard behave?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you evaluated?
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Design constraints (check those that apply)
+      options:
+        - label: Must remain offline by default
+        - label: Must not execute scanned content
+        - label: Must keep zero runtime dependencies in the core path
+        - label: Findings must remain explainable (rule ID + location + reason)
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
