@@ -12,46 +12,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SG019** — Dangerous MCP / agent tool declarations (shell, filesystem write, network)
 - **SG020** — Homoglyph / confusable Unicode mixed into Latin instruction text
 - **SG021** — Unverified remote package installs (pip/npm from URL, streamed installers)
+- **SG022** — Lightweight secret-to-sink data-flow heuristics for JS/TS/Python
 - Stronger secret patterns: JWT-like tokens, Azure secret assignments, LLM provider key assignments
 - SG011 extended with Discord/Telegram webhook exfiltration endpoints
-- Regression cases added for all new rule families
+
+### Features
+- **Safe ZIP ingestion** — offline, bounded, path-traversal safe, in-memory text members only
+- **Baseline suppression** — `skillguard baseline create` + `--baseline` with auditable accepted findings
+- **Custom rule packs** — offline JSON packs (`--pack`), example in `packs/example-extra.json`
+- **Local MCP server** — `skillguard mcp` exposes `skillguard_scan`, `skillguard_verify`, `skillguard_lock`
+
+### Notes
+- Core path remains zero-dependency and never executes scanned content
+- Version remains **0.3.0** until an explicit release is cut
 
 ## [0.3.0] — 2026-11-12
 
 ### Added
-- Enterprise-grade project governance: `CODE_OF_CONDUCT.md`, expanded `SECURITY.md`, `SUPPORT.md`, structured PR and issue templates.
-- Professional contribution standards in `CONTRIBUTING.md` with explicit offline / never-execute constraints.
-- Production hardening notes for the GitHub Action (SHA pinning, minimal permissions, Code Scanning guidance).
-- Clear release and Trusted Publishing checklist in `docs/release.md`.
-
-### Changed
-- README rewritten for production clarity: core guarantees table, precise limitations, consistent terminology.
-- Threat model, architecture, rules reference, roadmap, and competitive landscape refined for precision and professional tone.
-- Package metadata improved (`keywords`, `files` list includes governance documents).
-- CI workflow strengthened with concurrency control and clearer step names.
-- Author and project identity standardized across documentation (maintainer, repository, VEYROST ecosystem links).
-
-### Security
-- Security policy now defines supported versions, in-scope / out-of-scope boundaries, and coordinated disclosure expectations.
-- Design principles (never execute, offline default, explainable findings, fail-closed incompleteness) restated as non-negotiable constraints.
-
-### Notes
-- This maturity release focused on trust, clarity, and operational readiness. Subsequent unreleased work expands detection coverage.
+- Enterprise-grade project governance and professional documentation
+- Author identity standardized (Khayom Abdurahmonov / github.com/Khayom1)
 
 ## [0.2.0] — 2026-11-11
 
 ### Detection
-- Add **SG016** and **SG017**.
-- Expand prompt-injection coverage and secret patterns.
-- Strengthen PowerShell download-and-execute detection.
-
-### Packaging
-- Bump package version to **0.2.0**.
+- SG016, SG017 and expanded secret/prompt coverage
 
 ## [0.1.0]
 
-- Initial public MVP foundation.
-
-[0.3.0]: https://github.com/Khayom1/SkillGuard/releases/tag/v0.3.0
-[0.2.0]: https://github.com/Khayom1/SkillGuard/releases/tag/v0.2.0
-[0.1.0]: https://github.com/Khayom1/SkillGuard/releases/tag/v0.1.0
+- Initial public MVP foundation
