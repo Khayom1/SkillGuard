@@ -1,6 +1,6 @@
 {
   "name": "skillguard-ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Offline security scanner for AI agent skills. Detects prompt injection, secrets, reverse shells, destructive commands, hidden Unicode and supply-chain risks before an agent installs or runs a skill.",
   "type": "module",
   "engines": {
@@ -9,7 +9,8 @@
   "license": "MIT",
   "author": {
     "name": "Khayom Abdurahmonov",
-    "url": "https://github.com/Khayom1"
+    "url": "https://github.com/Khayom1",
+    "email": ""
   },
   "bin": {
     "skillguard": "./src/cli.js"
