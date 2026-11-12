@@ -12,11 +12,11 @@ Inspect complete skill bundles before an agent installs or executes them. Detect
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Zero dependencies](https://img.shields.io/badge/runtime%20dependencies-0-4f9bdb?style=for-the-badge)](package.json)
 [![CI](https://img.shields.io/github/actions/workflow/status/Khayom1/SkillGuard/ci.yml?branch=main&style=for-the-badge&label=CI)](.github/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=for-the-badge)](CHANGELOG.md)
 
 **Offline-first · Explainable · CI-native · Zero runtime dependencies · Never executes scanned content**
 
-[Quick Start](#quick-start) · [Detection Coverage](#detection-coverage) · [GitHub Action](#github-action) · [Integrity Lock](#integrity-lock) · [Threat Model](docs/THREAT_MODEL.md) · [Architecture](docs/architecture.md)
+[Quick Start](#quick-start) · [Detection Coverage](#detection-coverage) · [GitHub Action](#github-action) · [Integrity Lock](#integrity-lock) · [Threat Model](docs/THREAT_MODEL.md) · [Architecture](docs/architecture.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -61,7 +61,7 @@ These constraints are non-negotiable design principles, not optional features.
 
 ## Detection coverage
 
-SkillGuard currently ships **17 rule families**.
+SkillGuard currently ships **17 rule families** (stable IDs SG001–SG017).
 
 | Rule   | Severity  | Detection |
 |--------|-----------|-----------|
@@ -83,7 +83,7 @@ SkillGuard currently ships **17 rule families**.
 | SG016  | Critical  | Reverse shells, netcat listeners, remote interactive access |
 | SG017  | High      | `eval`/`exec`, Python `shell=True`, PowerShell `Invoke-Expression` |
 
-Full rule reference and examples: [docs/rules.md](docs/rules.md).
+Full rule reference: [docs/rules.md](docs/rules.md).
 
 ### Scoring
 
@@ -127,7 +127,7 @@ skillguard verify ./my-skill
 
 No API key. No runtime dependencies. No network access required for scanning.
 
-> **Package note:** The npm package name is `skillguard-ai` (v0.2.0). Until the public registry publish is live, install from this repository as shown above.
+> **Package:** `skillguard-ai` **v0.3.0**. Until the public npm registry publish is live, install from this repository as shown above.
 
 ## Example report
 
@@ -186,7 +186,7 @@ jobs:
 | `upload-sarif` | `false`            | Upload SARIF to GitHub Code Scanning |
 | `sarif-file`   | `skillguard.sarif` | Output path for the SARIF report |
 
-For Code Scanning upload, grant `security-events: write` and set `upload-sarif: 'true'`. See [docs/github-action.md](docs/github-action.md).
+For Code Scanning upload, grant `security-events: write` and set `upload-sarif: 'true'`. Prefer pinning to a release tag or full commit SHA in production. See [docs/github-action.md](docs/github-action.md).
 
 ## Integrity lock
 
@@ -262,23 +262,18 @@ The project uses Node’s built-in test runner and maintains zero runtime depend
 
 ```text
 SkillGuard/
-├── src/
-│   ├── cli.js          # CLI entry, thresholds, exit policy
-│   ├── scanner.js      # Scan orchestration and aggregation
-│   ├── rules.js        # Rule definitions, severity, weights
-│   ├── files.js        # Bounded discovery
-│   ├── safe-fs.js      # File-descriptor based safe reads
-│   ├── frontmatter.js  # Agent Skills metadata checks
-│   ├── reporters.js    # Text / JSON / SARIF serializers
-│   ├── integrity.js    # SHA-256 lock and verification
-│   ├── version.js      # Version metadata
-│   └── index.js        # Public module surface
-├── tests/              # Unit and integration tests
-├── benchmarks/         # Synthetic regression cases
-├── examples/           # Safe and intentionally risky fixtures
-├── docs/               # Architecture, rules, threat model, guides
-├── .github/workflows/  # CI and publishing
-├── action.yml          # Reusable GitHub Action
+├── src/                  # Core scanner, CLI, integrity, reporters
+├── tests/                # Unit and integration tests
+├── benchmarks/           # Synthetic regression cases
+├── examples/             # Safe and intentionally risky fixtures
+├── docs/                 # Architecture, rules, threat model, guides
+├── .github/              # CI, Action, issue/PR templates
+├── action.yml            # Reusable GitHub Action
+├── SECURITY.md           # Supported versions & disclosure
+├── SUPPORT.md            # How to get help
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── CHANGELOG.md
 └── README.md
 ```
 
@@ -308,11 +303,13 @@ See the full [Threat Model](docs/THREAT_MODEL.md), [Architecture](docs/architect
 4. **Prefer precision** — detect concrete risky behavior, not merely alarming vocabulary.
 5. **Expose uncertainty** — heuristics are signals, never guarantees.
 
-## Security and contributing
+## Security, support, and contributing
 
 - [Security Policy](SECURITY.md) — supported versions and vulnerability reporting
+- [Support](SUPPORT.md) — how to get help
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Contributing Guide](CONTRIBUTING.md)
+- [Release process](docs/release.md)
 
 ## License
 
@@ -322,9 +319,11 @@ MIT License. See [LICENSE](LICENSE).
 
 <div align="center">
 
-**Maintained by [Khayom Abdurahmonov](https://github.com/Khayom1)**
+**SkillGuard v0.3.0**
 
-[Repository](https://github.com/Khayom1/SkillGuard) · [Issues](https://github.com/Khayom1/SkillGuard/issues) · [VEYROST](https://veyrost.is-a.dev/)
+Created and maintained by **[Khayom Abdurahmonov](https://github.com/Khayom1)**
+
+[GitHub](https://github.com/Khayom1) · [Repository](https://github.com/Khayom1/SkillGuard) · [Issues](https://github.com/Khayom1/SkillGuard/issues) · [VEYROST](https://veyrost.is-a.dev/) · [Profile site](https://khayom1.github.io/)
 
 *Inspect the skill. Understand the risk. Keep control.*
 
