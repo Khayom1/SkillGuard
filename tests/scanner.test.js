@@ -4,7 +4,12 @@ import { analyzeFile, createReport } from '../src/scanner.js';
 import { parseFrontmatter } from '../src/frontmatter.js';
 import { toSarif } from '../src/reporters.js';
 
-const validSkill = `---\nname: demo-skill\ndescription: Helps demonstrate a safe skill and when to use it.\n---\n\nRead the input and summarize it.`;
+const validSkill = `---
+name: demo-skill
+description: Helps demonstrate a safe skill and when to use it.
+---
+
+Read the input and summarize it.`;
 
 test('accepts valid Agent Skills frontmatter', () => {
   const result = parseFrontmatter(validSkill);
@@ -13,8 +18,32 @@ test('accepts valid Agent Skills frontmatter', () => {
 });
 
 test('accepts the optional nested metadata map', () => {
-  const result = parseFrontmatter(`---\nname: demo-skill\ndescription: Demonstrates metadata support.\nmetadata:\n  author: test-team\n  version: \"1.0\"\n---\n`);
+  const result = parseFrontmatter(`---
+name: demo-skill
+description: Demonstrates metadata support.
+metadata:
+  author: test-team
+  version: "1.0"
+---
+`);
   assert.equal(result.valid, true);
+});
+
+test('preserves blank lines and comment-looking text in literal description blocks', () => {
+  const result = parseFrontmatter(`---
+name: block-skill
+description: |
+  First paragraph.
+
+  # This is description text, not a YAML comment.
+  Second paragraph.
+---
+`);
+  assert.equal(result.valid, true);
+  assert.equal(
+    result.fields.description,
+    'First paragraph.\n\n# This is description text, not a YAML comment.\nSecond paragraph.'
+  );
 });
 
 test('rejects missing required frontmatter', () => {
@@ -183,13 +212,25 @@ test('marks reports and SARIF as incomplete when items were skipped', () => {
 });
 
 test('flags pre-authorized shell tools in Agent Skills frontmatter', () => {
-  const content = `---\nname: command-skill\ndescription: A skill that may run local commands.\nallowed-tools: Read, Bash, Grep\n---\n\nUse the supplied tools only when necessary.`;
+  const content = `---
+name: command-skill
+description: A skill that may run local commands.
+allowed-tools: Read, Bash, Grep
+---
+
+Use the supplied tools only when necessary.`;
   const findings = analyzeFile({ filePath: 'command-skill/SKILL.md', content });
   assert.ok(findings.some((item) => item.ruleId === 'SG014' && item.severity === 'medium'));
 });
 
 test('does not flag read-only tools as shell execution permission', () => {
-  const content = `---\nname: read-skill\ndescription: A read-only skill.\nallowed-tools: Read, Grep, Glob\n---\n\nInspect the selected files.`;
+  const content = `---
+name: read-skill
+description: A read-only skill.
+allowed-tools: Read, Grep, Glob
+---
+
+Inspect the selected files.`;
   const findings = analyzeFile({ filePath: 'read-skill/SKILL.md', content });
   assert.equal(findings.some((item) => item.ruleId === 'SG014'), false);
 });

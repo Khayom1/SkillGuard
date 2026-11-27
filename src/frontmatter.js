@@ -30,20 +30,26 @@ export function parseFrontmatter(content) {
 
   for (let index = 1; index < closing; index += 1) {
     const line = lines[index];
-    if (!line.trim() || /^\s*#/.test(line)) continue;
-    // Agent Skills permits a nested metadata mapping; this lightweight parser
-    // validates the fields SkillGuard needs and leaves metadata values alone.
-    if (/^\s+/.test(line) && Object.hasOwn(fields, 'metadata')) continue;
 
     if (blockIndent !== null) {
       const indent = line.match(/^\s*/)?.[0].length ?? 0;
-      if (line.trim() && indent >= blockIndent) {
+      if (!line.trim()) {
+        // Blank lines are content inside YAML block scalars, not ignorable YAML spacing.
+        fields[currentKey] = `${fields[currentKey] ?? ''}\n`;
+        continue;
+      }
+      if (indent >= blockIndent) {
         fields[currentKey] = `${fields[currentKey] ?? ''}${fields[currentKey] ? '\n' : ''}${line.trim()}`;
         continue;
       }
       blockIndent = null;
       currentKey = null;
     }
+
+    if (!line.trim() || /^\s*#/.test(line)) continue;
+    // Agent Skills permits a nested metadata mapping; this lightweight parser
+    // validates the fields SkillGuard needs and leaves metadata values alone.
+    if (/^\s+/.test(line) && Object.hasOwn(fields, 'metadata')) continue;
 
     const match = line.match(/^([A-Za-z][A-Za-z0-9_-]*)\s*:\s*(.*)$/);
     if (!match) {
